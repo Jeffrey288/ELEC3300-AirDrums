@@ -31,5 +31,6 @@ For the mainboard,
 If not, what development board you intend to use? 
 
 - should be enough
+- we might use extra chips for the drumsticks
 
 
