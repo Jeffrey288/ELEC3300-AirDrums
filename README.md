@@ -10,6 +10,7 @@ Project Group Number: **44**
 
 - We would like to build an air dum set.
 - Basically, we have two drum sticks equipped with gyroscope sensors. The user will swing the drum sticks as if they're playing real drums, and based on how they orient their drumsticks, different drum sounds will be played.
+- There will also be two pedals for the bass.
 - The microcontroller will be responsible for processing the gyroscope data and playing the appropiate sounds.
 - It will also provide utility functions such as recording the performance and storing data into an SD card, and also reponsible for playing the drum sounds through AUX port or by connecting to a bluetooth speaker (tentative).
 
