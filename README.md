@@ -1,5 +1,13 @@
 # ELEC3300-Project
 
+## To-do list
+- (Ivan) board drawing
+- music playing and mixing (headphone jack)
+- analog pedal (tof + uart)
+- imu data processing (digital)
+- sd card storage (sd card reader)
+- some buttons (init, start recording, stop recording)
+
 # ELEC 3300 – Introduction to Embedded Systems
 ## Peer Discussion Worksheet
 
