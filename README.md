@@ -12,25 +12,26 @@ Project Group Number: **44**
 - Basically, we have two drum sticks equipped with gyroscope sensors. The user will swing the drum sticks as if they're playing real drums, and based on how they orient their drumsticks, different drum sounds will be played.
 - There will also be two pedals for the bass.
 - The microcontroller will be responsible for processing the gyroscope data and playing the appropiate sounds.
-- It will also provide utility functions such as recording the performance and storing data into an SD card, and also reponsible for playing the drum sounds through AUX port or by connecting to a bluetooth speaker (tentative).
+- It will also provide utility functions such as metronome, playing the drum sounds through AUX port or by connecting to a bluetooth speaker (tentative).
+- More tentative feature if time allows:
+  - playing music from sd card while performing
+  - recording the performance and stroing into sd card
+  - wireless drumsticks using nrf
 
 2.	List of hardware (like sensors, device, motor that you might need for your project)
 
 For the drumsticks,
 - two gyroscopes for each drum stick
-- nrf for communication with mainboard
-- MCUs for controlling the gryos and nrfs
+- long wire connecting to the mainboard
 
 For the mainboard,
-- nrfs for receiving data
 - lcd for displaying what drums are hit and for setting up the system
 - buttons for adjusting settings
-- - sd card for data storage of recordings
+- - sd card for data storage of sound
 
 3.	Can the STM32F103 Development Board satisfy your Project need?  
 If not, what development board you intend to use? 
 
 - should be enough
-- we might use extra chips for the drumsticks
-
+- we might draw our own boards
 
