@@ -17,6 +17,7 @@ Project Group Number: **44**
   - playing music from sd card while performing
   - recording the performance and stroing into sd card
   - wireless drumsticks using nrf
+  - a button for muting
 
 2.	List of hardware (like sensors, device, motor that you might need for your project)
 
