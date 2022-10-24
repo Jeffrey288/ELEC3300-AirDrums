@@ -1,0 +1,84 @@
+04:27:32 **** Incremental Build of configuration Debug for project AUDIO ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xE -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -I../FATFS/Target -I../FATFS/App -I../Middlewares/Third_Party/FatFs/src -I../Middlewares/Third_Party/FatFs/src/drivers -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/main.o"
+In file included from ../Core/Src/main.c:28:
+../Core/Inc/fileBuff.h: In function 'initFileHeader':
+../Core/Inc/fileBuff.h:71:80: warning: pointer targets in passing argument 4 of 'f_read' differ in signedness [-Wpointer-sign]
+   71 |  return f_read(&(fileStruct->file), &(fileStruct->header), sizeof(WAV_HEADER), &bytes_read);
+      |                                                                                ^~~~~~~~~~~
+      |                                                                                |
+      |                                                                                int *
+In file included from ../FATFS/App/fatfs.h:26,
+                 from ../Core/Src/main.c:21:
+../Middlewares/Third_Party/FatFs/src/ff.h:228:54: note: expected 'UINT *' {aka 'unsigned int *'} but argument is of type 'int *'
+  228 | FRESULT f_read (FIL* fp, void* buff, UINT btr, UINT* br);   /* Read data from a file */
+      |                                                ~~~~~~^~
+In file included from ../Core/Src/main.c:28:
+../Core/Inc/fileBuff.h: In function 'readFile':
+../Core/Inc/fileBuff.h:79:84: warning: passing argument 4 of 'f_read' from incompatible pointer type [-Wincompatible-pointer-types]
+   79 |   FRESULT res = f_read(&(f->file), f->structs[f->currWriting].data.raw, BUFF_SIZE, &(f->structs[f->currWriting].buffSize));
+      |                                                                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                                                                                    |
+      |                                                                                    uint16_t * {aka short unsigned int *}
+In file included from ../FATFS/App/fatfs.h:26,
+                 from ../Core/Src/main.c:21:
+../Middlewares/Third_Party/FatFs/src/ff.h:228:54: note: expected 'UINT *' {aka 'unsigned int *'} but argument is of type 'uint16_t *' {aka 'short unsigned int *'}
+  228 | FRESULT f_read (FIL* fp, void* buff, UINT btr, UINT* br);   /* Read data from a file */
+      |                                                ~~~~~~^~
+../Core/Src/main.c: In function 'error_handler':
+../Core/Src/main.c:78:3: warning: implicit declaration of function 'sprintf' [-Wimplicit-function-declaration]
+   78 |   sprintf(buff, "%d %s", res, msg);
+      |   ^~~~~~~
+../Core/Src/main.c:78:3: warning: incompatible implicit declaration of built-in function 'sprintf'
+../Core/Src/main.c:29:1: note: include '<stdio.h>' or provide a declaration of 'sprintf'
+   28 | #include "fileBuff.h"
+  +++ |+#include <stdio.h>
+   29 | /* USER CODE END Includes */
+../Core/Src/main.c: In function 'display_success':
+../Core/Src/main.c:84:3: warning: incompatible implicit declaration of built-in function 'sprintf'
+   84 |   sprintf(buff, "%d %s", num, msg);
+      |   ^~~~~~~
+../Core/Src/main.c:84:3: note: include '<stdio.h>' or provide a declaration of 'sprintf'
+../Core/Src/main.c: In function 'main':
+../Core/Src/main.c:168:5: warning: incompatible implicit declaration of built-in function 'sprintf'
+  168 |     sprintf(buff, "%d no more :(", res);
+      |     ^~~~~~~
+../Core/Src/main.c:168:5: note: include '<stdio.h>' or provide a declaration of 'sprintf'
+../Core/Src/main.c:191:5: warning: incompatible implicit declaration of built-in function 'sprintf'
+  191 |     sprintf(buff, "hertz: %d", header->sampleFreq);
+      |     ^~~~~~~
+../Core/Src/main.c:191:5: note: include '<stdio.h>' or provide a declaration of 'sprintf'
+../Core/Src/main.c:191:28: warning: format '%d' expects argument of type 'int', but argument 3 has type 'uint32_t' {aka 'long unsigned int'} [-Wformat=]
+  191 |     sprintf(buff, "hertz: %d", header->sampleFreq);
+      |                           ~^   ~~~~~~~~~~~~~~~~~~
+      |                            |         |
+      |                            int       uint32_t {aka long unsigned int}
+      |                           %ld
+../Core/Src/main.c:197:27: warning: format '%d' expects argument of type 'int', but argument 3 has type 'uint32_t' {aka 'long unsigned int'} [-Wformat=]
+  197 |     sprintf(buff, "data: %d", header->dataChunkLength);
+      |                          ~^   ~~~~~~~~~~~~~~~~~~~~~~~
+      |                           |         |
+      |                           int       uint32_t {aka long unsigned int}
+      |                          %ld
+../Core/Src/main.c:261:11: warning: unused variable 'sample_sum' [-Wunused-variable]
+  261 |   int16_t sample_sum = 0;
+      |           ^~~~~~~~~~
+In file included from ../Core/Src/main.c:28:
+../Core/Inc/fileBuff.h: In function 'readSample':
+../Core/Inc/fileBuff.h:103:1: warning: control reaches end of non-void function [-Wreturn-type]
+  103 | }
+      | ^
+arm-none-eabi-gcc -o "AUDIO.elf" @"objects.list"   -mcpu=cortex-m3 -T"C:\Users\pinkp\Documents\GitHub\ELEC3300-Project\AUDIO\STM32F103VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="AUDIO.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: AUDIO.elf
+ 
+arm-none-eabi-size   AUDIO.elf 
+arm-none-eabi-objdump -h -S  AUDIO.elf  > "AUDIO.list"
+   text	   data	    bss	    dec	    hex	filename
+  41224	    120	   8336	  49680	   c210	AUDIO.elf
+Finished building: default.size.stdout
+ 
+Finished building: AUDIO.list
+ 
+
+04:27:34 Build Finished. 0 errors, 11 warnings. (took 1s.628ms)
+

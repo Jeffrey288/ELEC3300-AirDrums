@@ -1,0 +1,61 @@
+15:59:44 **** Incremental Build of configuration Debug for project LAB3 ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/tft.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xE -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -I../FATFS/Target -I../FATFS/App -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM3 -I../Middlewares/Third_Party/FatFs/src -I../Middlewares/Third_Party/FatFs/src/drivers -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/tft.d" -MT"Core/Src/tft.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/tft.o"
+../Core/Src/tft.c: In function 'tft_task':
+../Core/Src/tft.c:28:4: warning: implicit declaration of function 'sprintf' [-Wimplicit-function-declaration]
+   28 |    sprintf(buff, "%02d:%02d.%03d",
+      |    ^~~~~~~
+../Core/Src/tft.c:28:4: warning: incompatible implicit declaration of built-in function 'sprintf'
+../Core/Src/tft.c:5:1: note: include '<stdio.h>' or provide a declaration of 'sprintf'
+    4 | #include "audio.h"
+  +++ |+#include <stdio.h>
+    5 | 
+../Core/Src/tft.c:28:22: warning: format '%d' expects argument of type 'int', but argument 3 has type 'long unsigned int' [-Wformat=]
+   28 |    sprintf(buff, "%02d:%02d.%03d",
+      |                   ~~~^
+      |                      |
+      |                      int
+      |                   %02ld
+   29 |      HAL_GetTick() / (1000 * 60),
+      |      ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                    |
+      |                    long unsigned int
+../Core/Src/tft.c:28:27: warning: format '%d' expects argument of type 'int', but argument 4 has type 'long unsigned int' [-Wformat=]
+   28 |    sprintf(buff, "%02d:%02d.%03d",
+      |                        ~~~^
+      |                           |
+      |                           int
+      |                        %02ld
+   29 |      HAL_GetTick() / (1000 * 60),
+   30 |      (HAL_GetTick() / 1000) % (60),
+      |      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                             |
+      |                             long unsigned int
+../Core/Src/tft.c:28:32: warning: format '%d' expects argument of type 'int', but argument 5 has type 'long unsigned int' [-Wformat=]
+   28 |    sprintf(buff, "%02d:%02d.%03d",
+      |                             ~~~^
+      |                                |
+      |                                int
+      |                             %03ld
+......
+   31 |      HAL_GetTick() % 1000);
+      |      ~~~~~~~~~~~~~~~~~~~~       
+      |                    |
+      |                    long unsigned int
+../Core/Src/tft.c:39:4: warning: implicit declaration of function 'vTaskDelay' [-Wimplicit-function-declaration]
+   39 |    vTaskDelay(20);
+      |    ^~~~~~~~~~
+arm-none-eabi-gcc -o "LAB3.elf" @"objects.list"   -mcpu=cortex-m3 -T"C:\Users\pinkp\Documents\GitHub\ELEC3300-Project\LAB3\STM32F103VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="LAB3.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: LAB3.elf
+ 
+arm-none-eabi-size   LAB3.elf 
+arm-none-eabi-objdump -h -S  LAB3.elf  > "LAB3.list"
+   text	   data	    bss	    dec	    hex	filename
+  28600	    124	   6028	  34752	   87c0	LAB3.elf
+Finished building: default.size.stdout
+ 
+Finished building: LAB3.list
+ 
+
+15:59:45 Build Finished. 0 errors, 6 warnings. (took 1s.756ms)
+

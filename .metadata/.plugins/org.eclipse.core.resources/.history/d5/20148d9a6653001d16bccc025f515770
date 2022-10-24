@@ -1,0 +1,6 @@
+
+int errorFlag;
+char errorMsg[30];
+void error_handler();
+
+void tft_task();

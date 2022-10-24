@@ -1,0 +1,46 @@
+//  uint32_t some_tick = 0;
+//  while (1) {
+////	  counter++;
+//	  if (HAL_GetTick() - some_tick > 200) {
+//		  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+//		  some_tick = HAL_GetTick();
+//	  }
+//	  sprintf(buff, "counter: %05d %06d", counter ,__HAL_TIM_GET_COUNTER(&htim2));
+////	  if (counter % 223 == 0) {
+//	  LCD_DrawString(0, 20, buff);
+////	  }
+//  }
+
+//  WAV_HEADER header;
+//  unsigned int bytes_read = 0;
+//  res = f_read(&fil, &header, sizeof(WAV_HEADER), &bytes_read);
+//  else display_success(header.sampleFreq, "mother fucker");
+//  HAL_Delay(20);
+//  sprintf(buff, "hertz: %d", header.sampleFreq);
+//  LCD_DrawString(30, 100, buff);
+//  sprintf(buff, "bits/sample: %d", header.bitsPerSample);
+//  LCD_DrawString(30, 120, buff);
+//  sprintf(buff, "channels: %d", header.channels);
+//  LCD_DrawString(30, 140, buff);
+//  sprintf(buff, "data: %d", header.dataChunkLength);
+//  LCD_DrawString(30, 160, buff);
+
+//  sprintf(buff, "hertz: %d", header.sampleFreq);
+//  LCD_DrawString(30, 180, buff);
+//  sprintf(buff, "hertz: %d", header.sampleFreq);
+//  LCD_DrawString(30, 200, buff);
+//
+
+//  const uint32_t wave_freq = 1000;
+//  const uint32_t dac_freq = 16000;
+//  const uint32_t NS = dac_freq / wave_freq;
+//  uint32_t Wave_LUT[NS];
+//  for (int i = 0; i < NS; i++) {
+//	  Wave_LUT[i] = 0;
+//	  Wave_LUT[i] += 0.5*( (4095/2.0) * sin((float) i/NS*(2*3.1415926)) + (4095)/2.0 ); //1000Hz
+//	  Wave_LUT[i] += 0.5*( (4095/2.0) * sin((float) 2*i/NS*(2*3.1415926)) + (4095)/2.0 ); //2000Hz
+////	  if (Wave_LUT[i] > 4095) Wave_LUT[i] = 4095;
+//  }
+
+//  HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_2, (uint32_t*)Wave_LUT, NS, DAC_ALIGN_12B_R);
+//  HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_2, (uint32_t*)rawData, MUSIC_LENGTH, DAC_ALIGN_12B_R);

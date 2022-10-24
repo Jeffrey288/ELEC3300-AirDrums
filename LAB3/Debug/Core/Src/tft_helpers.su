@@ -1,0 +1,4 @@
+../Core/Src/tft_helpers.c:8:6:tft_set_textColor	16	static
+../Core/Src/tft_helpers.c:9:6:tft_set_highlightColor	16	static
+../Core/Src/tft_helpers.c:11:6:tft_printc	24	static
+../Core/Src/tft_helpers.c:29:6:tft_prints	4128	static

@@ -1,0 +1,2 @@
+../Core/Src/tft.c:9:6:error_handler	24	static
+../Core/Src/tft.c:18:6:tft_task	128	static
