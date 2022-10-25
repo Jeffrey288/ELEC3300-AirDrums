@@ -3922,3 +3922,10 @@
 2022-10-25 04:49:11,400 [INFO] ApiDb:443 - Save user favorites file C:\Users\pinkp/.stm32cubeide/favorites.examples.txt: 0 item(s)
 2022-10-25 04:49:11,400 [INFO] ApiDb:447 - User favorites Examples=[]
 2022-10-25 04:49:19,950 [INFO] UtilMem:74 - End SaveConfig() Used Memory: 614824288 Bytes (964689920)
+2022-10-25 13:09:44,830 [INFO] Activator:177 - 
+
+
+2022-10-25 13:09:44,833 [INFO] Activator:178 - !SESSION log4j initialized
+2022-10-25 13:10:28,598 [ERROR] LogOutputStream:74 - [STDERR_REDIRECT] SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+2022-10-25 13:10:28,600 [ERROR] LogOutputStream:74 - [STDERR_REDIRECT] SLF4J: Defaulting to no-operation (NOP) logger implementation
+2022-10-25 13:10:28,602 [ERROR] LogOutputStream:74 - [STDERR_REDIRECT] SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
