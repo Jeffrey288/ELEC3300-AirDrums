@@ -117,8 +117,9 @@ DRESULT disk_read (
 )
 {
   DRESULT res;
- 
+  __disable_irq();
   res = disk.drv[pdrv]->disk_read(disk.lun[pdrv], buff, sector, count);
+  __enable_irq();
   return res;
 }
 

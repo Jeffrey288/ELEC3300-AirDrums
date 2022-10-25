@@ -44,3 +44,131 @@
 
 //  HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_2, (uint32_t*)Wave_LUT, NS, DAC_ALIGN_12B_R);
 //  HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_2, (uint32_t*)rawData, MUSIC_LENGTH, DAC_ALIGN_12B_R);
+
+
+
+//		char buff[30];
+//		sprintf(buff, "res: %2d, buff: %4d, %4d", res, f->structs[f->currWriting].buffSize, HAL_GetTick() % 1000);
+//		LCD_DrawString(0, 0, buff);
+
+
+
+FRESULT f_read (
+	FIL* fp, 		/* Pointer to the file object */
+	void* buff,		/* Pointer to data buffer */
+	UINT btr,		/* Number of bytes to read */
+	UINT* br		/* Pointer to number of bytes read */
+)
+{
+	FRESULT res;
+	DWORD clst, sect, remain;
+	UINT rcnt, cc;
+	BYTE csect, *rbuff = (BYTE*)buff;
+
+	__disable_irq();
+	*br = 0;	/* Clear read byte counter */
+
+	res = validate(fp);							/* Check validity */
+	if (res != FR_OK) LEAVE_FF(fp->fs, res);
+	if (fp->err)								/* Check error */
+		LEAVE_FF(fp->fs, (FRESULT)fp->err);
+	if (!(fp->flag & FA_READ)) 					/* Check access mode */
+		LEAVE_FF(fp->fs, FR_DENIED);
+	remain = fp->fsize - fp->fptr;
+	if (btr > remain) btr = (UINT)remain;		/* Truncate btr by remaining bytes */
+
+	for ( ;  btr;								/* Repeat until all data read */
+		rbuff += rcnt, fp->fptr += rcnt, *br += rcnt, btr -= rcnt) {
+		if ((fp->fptr % SS(fp->fs)) == 0) {		/* On the sector boundary? */
+			__enable_irq();
+			HAL_Delay(1);
+			__disable_irq();
+			csect = (BYTE)(fp->fptr / SS(fp->fs) & (fp->fs->csize - 1));	/* Sector offset in the cluster */
+			if (!csect) {						/* On the cluster boundary? */
+				if (fp->fptr == 0) {			/* On the top of the file? */
+					clst = fp->sclust;			/* Follow from the origin */
+				} else {						/* Middle or end of the file */
+#if _USE_FASTSEEK
+					__enable_irq();
+					HAL_Delay(1);
+					__disable_irq();
+					if (fp->cltbl)
+						clst = clmt_clust(fp, fp->fptr);	/* Get cluster# from the CLMT */
+					else
+#endif
+						clst = get_fat(fp->fs, fp->clust);	/* Follow cluster chain on the FAT */
+					__enable_irq();
+					HAL_Delay(1);
+					__disable_irq();
+				}
+				if (clst < 2) ABORT(fp->fs, FR_INT_ERR);
+				if (clst == 0xFFFFFFFF) ABORT(fp->fs, FR_DISK_ERR);
+				fp->clust = clst;				/* Update current cluster */
+			}
+			__enable_irq();
+			HAL_Delay(1);
+			__disable_irq();
+			sect = clust2sect(fp->fs, fp->clust);	/* Get current sector */
+			__enable_irq();
+			HAL_Delay(1);
+			__disable_irq();
+			if (!sect) ABORT(fp->fs, FR_INT_ERR);
+			sect += csect;
+			cc = btr / SS(fp->fs);				/* When remaining bytes >= sector size, */
+			if (cc) {							/* Read maximum contiguous sectors directly */
+				if (csect + cc > fp->fs->csize)	/* Clip at cluster boundary */
+					cc = fp->fs->csize - csect;
+				if (disk_read(fp->fs->drv, rbuff, sect, cc) != RES_OK)
+					ABORT(fp->fs, FR_DISK_ERR);
+#if !_FS_READONLY && _FS_MINIMIZE <= 2			/* Replace one of the read sectors with cached data if it contains a dirty sector */
+#if _FS_TINY
+				if (fp->fs->wflag && fp->fs->winsect - sect < cc)
+					mem_cpy(rbuff + ((fp->fs->winsect - sect) * SS(fp->fs)), fp->fs->win.d8, SS(fp->fs));
+#else
+				__enable_irq();
+//				HAL_Delay(1);
+				if ((fp->flag & FA__DIRTY) && fp->dsect - sect < cc)
+					mem_cpy(rbuff + ((fp->dsect - sect) * SS(fp->fs)), fp->buf.d8, SS(fp->fs));
+				__disable_irq();
+#endif
+#endif
+				rcnt = SS(fp->fs) * cc;			/* Number of bytes transferred */
+				continue;
+			}
+#if !_FS_TINY
+			if (fp->dsect != sect) {			/* Load data sector if not in cache */
+#if !_FS_READONLY
+				__enable_irq();
+				HAL_Delay(1);
+				__disable_irq();
+				if (fp->flag & FA__DIRTY) {		/* Write-back dirty sector cache */
+					if (disk_write(fp->fs->drv, fp->buf.d8, fp->dsect, 1) != RES_OK)
+						ABORT(fp->fs, FR_DISK_ERR);
+					fp->flag &= ~FA__DIRTY;
+				}
+#endif
+				__enable_irq();
+				HAL_Delay(1);
+				__disable_irq();
+				if (disk_read(fp->fs->drv, fp->buf.d8, sect, 1) != RES_OK)	/* Fill sector cache */
+					ABORT(fp->fs, FR_DISK_ERR);
+			}
+#endif
+			fp->dsect = sect;
+		}
+		__enable_irq();
+		rcnt = SS(fp->fs) - ((UINT)fp->fptr % SS(fp->fs));	/* Get partial sector data from sector buffer */
+		if (rcnt > btr) rcnt = btr;
+#if _FS_TINY
+		if (move_window(fp->fs, fp->dsect) != FR_OK)		/* Move sector window */
+			ABORT(fp->fs, FR_DISK_ERR);
+		mem_cpy(rbuff, &fp->fs->win.d8[fp->fptr % SS(fp->fs)], rcnt);	/* Pick partial sector */
+#else
+		mem_cpy(rbuff, &fp->buf.d8[fp->fptr % SS(fp->fs)], rcnt);	/* Pick partial sector */
+#endif
+		__disable_irq();
+	}
+	__enable_irq();
+
+	LEAVE_FF(fp->fs, FR_OK);
+}

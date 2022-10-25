@@ -43,6 +43,7 @@ typedef struct {
 	FileBuff structs[BUFF_NUM];
 	uint8_t currReading;
 	uint8_t currWriting;
+	uint32_t sampleCount;
 } FileStruct;
 
 #define fileStructEmpty(f, index) (!((f)->structs[index].buffSize))
@@ -61,6 +62,7 @@ static inline void initFileStruct(FileStruct *fileStruct) {
 	fileStruct->currWriting = 0; // also set to use the first fileStruct
 	fileStruct->inUse = 1;
 	fileStruct->fileEmpty = 0;
+	fileStruct->sampleCount = 0;
 }
 
 static inline int initFileHeader(FileStruct *fileStruct) {
@@ -74,9 +76,6 @@ static inline int readFile(FileStruct* f) {
 	if (f->currWriting == f->currReading) return -1;
 	if (fileStructEmpty(f, f->currWriting)) {
 		FRESULT res = f_read(&(f->file), f->structs[f->currWriting].raw, BUFF_SIZE, &(f->structs[f->currWriting].buffSize));
-//		char buff[30];
-//		sprintf(buff, "res: %2d, buff: %4d, %4d", res, f->structs[f->currWriting].buffSize, HAL_GetTick() % 1000);
-//		LCD_DrawString(0, 0, buff);
 		if (res != FR_OK || f->structs[f->currWriting].buffSize == 0) {
 			f->fileEmpty = 1;
 			return -1;
@@ -94,6 +93,7 @@ static inline uint16_t readSample(FileStruct* f) {
 		f->structs[f->currReading].buffSize -= 2;
 		temp = (f->structs[f->currReading].curr[1] << 8) | f->structs[f->currReading].curr[0];
 		f->structs[f->currReading].curr += 2;
+		f->sampleCount++;
 		return temp;
 	} else if (!fileStructEmpty(f, (f->currReading + 1) % BUFF_NUM)) {
 		f->currReading = (f->currReading + 1) % BUFF_NUM;

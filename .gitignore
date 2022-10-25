@@ -4,6 +4,7 @@
 *.tree
 *.resources
 *.xmi
+.metadata
 .metadata/.ide.log
 .metadata/.log
 .metadata/.plugins/org.eclipse.cdt.core/.log
@@ -38,6 +39,18 @@
 .metadata/.plugins/org.eclipse.core.resources/.safetable/org.eclipse.core.resources
 .metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.debug.core.prefs
 .metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.debug.ui.prefs
+.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.launchbar.core.prefs
+.metadata/.plugins/org.eclipse.debug.ui/launchConfigurationHistory.xml
+.metadata/.plugins/org.eclipse.e4.workbench/workbench.xmi
+.metadata/.plugins/org.eclipse.ltk.core.refactoring/.refactorings/.workspace/2022/10/44/refactorings.history
+.metadata/.plugins/org.eclipse.ltk.core.refactoring/.refactorings/.workspace/2022/10/44/refactorings.index
+.metadata/.log
+.metadata/.plugins/org.eclipse.cdt.ui/AUDIO.build.log
+.metadata/.plugins/org.eclipse.cdt.ui/global-build.log
+.metadata/.plugins/org.eclipse.cdt.ui/LAB3.build.log
+.metadata/.plugins/org.eclipse.core.resources/.root/.indexes/properties.index
+.metadata/.plugins/org.eclipse.core.resources/.safetable/org.eclipse.core.resources
+.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.debug.core.prefs
 .metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.launchbar.core.prefs
 .metadata/.plugins/org.eclipse.debug.ui/launchConfigurationHistory.xml
 .metadata/.plugins/org.eclipse.e4.workbench/workbench.xmi

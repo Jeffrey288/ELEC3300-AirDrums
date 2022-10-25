@@ -94,7 +94,7 @@ uint8_t fileBuffer[1000];
 int counter = 1;
 FileStruct sampleFile;
 uint16_t dac_out;
-uint16_t sample_sum;
+int16_t sample_sum;
 
 // stolen code
 #define bit_set(var,bitno) ((var) |= 1 << (bitno))
@@ -142,9 +142,9 @@ int main(void)
   LCD_INIT();
   HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
 
-  TIM2->PSC = 7900;
-  TIM2->ARR = 7900;
-//  TIM2->ARR = 72000000 / 22050 - 1;
+//  TIM2->PSC = 7900;
+//  TIM2->ARR = 7900;
+  TIM2->ARR = 72000000 / 22050 - 1;
 //  TIM2->ARR = 72000000 / 23050 - 1;
 //  TIM2->ARR = 72000000 / 44100 - 1;
 
@@ -219,23 +219,36 @@ int main(void)
 		  some_tick = HAL_GetTick();
 	  }
 
-	  	  sprintf(buff, "(0) %4d (1) %4d", sampleFile.structs[0].buffSize, sampleFile.structs[1].buffSize);
-	  	  LCD_DrawString(0, 210, buff);
-	  	  sprintf(buff, "r:%d,w:%d,empty:%d", sampleFile.currReading, sampleFile.currWriting, sampleFile.fileEmpty);
-	  	  LCD_DrawString(0, 230, buff);
-		  sprintf(buff, "sample: %6d     ", sample_sum);
+//	  	  sprintf(buff, "(0) %4d (1) %4d", sampleFile.structs[0].buffSize, sampleFile.structs[1].buffSize);
+//	  	  LCD_DrawString(0, 210, buff);
+//	  	  sprintf(buff, "r:%d,w:%d,empty:%d", sampleFile.currReading, sampleFile.currWriting, sampleFile.fileEmpty);
+//	  	  LCD_DrawString(0, 230, buff);
+//		  sprintf(buff, "sample: %6d     ", sample_sum);
+//	      LCD_DrawString(20, 80, buff);
+	  if (sampleFile.sampleCount % 3241 == 0) {
+		  sprintf(buff, "count: %6d     ", sampleFile.sampleCount);
 	      LCD_DrawString(20, 80, buff);
+	  }
 
-	  	__disable_irq();
 		readFile(&sampleFile);
+		__disable_irq();
 		if (!sampleFile.inUse) {
 		  res = f_open(&(sampleFile.file), filename, FA_READ);
 		  if (res != FR_OK) error_handler(res, "Cannot open file");
+		  __enable_irq();
 		  initFileStruct(&sampleFile);
+		  __disable_irq();
 		  res = initFileHeader(&sampleFile);
 		  if (res != FR_OK) error_handler(res, "Cannot read file");
 		}
 		__enable_irq();
+
+//				counter++;
+//		sample_sum = readSample(&sampleFile);
+//		dac_out = (sample_sum + 32768);
+//		HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, (dac_out) >> 5);
+//		while (testbit(TIM2->SR, 0) == 0); /* wait for timer reset */
+//		bit_clr(TIM2->SR, 0);
 
 		continue;
 
@@ -267,7 +280,6 @@ int main(void)
 //		  btn_k2_pressed = 0;
 //	  }
 
-		int16_t sample_sum = 0;
 
 //
 //      i++;
@@ -720,8 +732,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim->Instance == TIM2) {
 //		counter++;
 		sample_sum = readSample(&sampleFile);
-		dac_out = ((int16_t) sample_sum + 32768);
-		HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, (dac_out) >> 4);
+		dac_out = (sample_sum + 32768);
+		HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, (dac_out) >> 5);
 	}
 }
 
