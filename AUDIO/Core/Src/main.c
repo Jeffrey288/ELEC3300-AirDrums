@@ -93,6 +93,8 @@ uint8_t fileBuffer[1000];
 //uint16_t dac_out = 0;
 int counter = 1;
 FileStruct sampleFile;
+uint16_t dac_out;
+uint16_t sample_sum;
 
 // stolen code
 #define bit_set(var,bitno) ((var) |= 1 << (bitno))
@@ -140,7 +142,9 @@ int main(void)
   LCD_INIT();
   HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
 
-  TIM2->ARR = 72000000 / 22050 - 1;
+  TIM2->PSC = 7900;
+  TIM2->ARR = 7900;
+//  TIM2->ARR = 72000000 / 22050 - 1;
 //  TIM2->ARR = 72000000 / 23050 - 1;
 //  TIM2->ARR = 72000000 / 44100 - 1;
 
@@ -174,8 +178,6 @@ int main(void)
 	  if (filename[0] == 'M') break;
   }
 
-  HAL_TIM_Base_Start(&htim2);
-  __HAL_TIM_ENABLE_IT(&htim2, TIM_IT_UPDATE);
 
   // Initialize the fileStruct struct
   res = f_open(&(sampleFile.file), filename, FA_READ);
@@ -185,6 +187,9 @@ int main(void)
   initFileStruct(&sampleFile);
   res = initFileHeader(&sampleFile);
   if (res != FR_OK) error_handler(res, "Cannot read file");
+
+  HAL_TIM_Base_Start(&htim2);
+  __HAL_TIM_ENABLE_IT(&htim2, TIM_IT_UPDATE);
 
   // Display some information about the header
   	WavHeader *header = &(sampleFile.header);
@@ -218,7 +223,10 @@ int main(void)
 	  	  LCD_DrawString(0, 210, buff);
 	  	  sprintf(buff, "r:%d,w:%d,empty:%d", sampleFile.currReading, sampleFile.currWriting, sampleFile.fileEmpty);
 	  	  LCD_DrawString(0, 230, buff);
+		  sprintf(buff, "sample: %6d     ", sample_sum);
+	      LCD_DrawString(20, 80, buff);
 
+	  	__disable_irq();
 		readFile(&sampleFile);
 		if (!sampleFile.inUse) {
 		  res = f_open(&(sampleFile.file), filename, FA_READ);
@@ -227,6 +235,7 @@ int main(void)
 		  res = initFileHeader(&sampleFile);
 		  if (res != FR_OK) error_handler(res, "Cannot read file");
 		}
+		__enable_irq();
 
 		continue;
 
@@ -706,24 +715,15 @@ static void MX_FSMC_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-uint16_t dac_out;
-uint16_t sample_sum;
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim->Instance == TIM2) {
 //		counter++;
 		sample_sum = readSample(&sampleFile);
-		sample_sum += 32768;
-		dac_out = sample_sum;
+		dac_out = ((int16_t) sample_sum + 32768);
 		HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, (dac_out) >> 4);
 	}
 }
-
-//void HAL_TIM_TriggerCallback(TIM_HandleTypeDef *htim) {
-//	if (htim->Instance == TIM2) {
-//		counter++;
-//	}
-//}
-
 
 /* USER CODE END 4 */
 

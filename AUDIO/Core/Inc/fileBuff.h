@@ -28,12 +28,9 @@
  */
 
 typedef struct {
-	union {
-		uint8_t raw[BUFF_SIZE];
-		uint16_t samples[BUFF_SIZE / 2];
-	} data;
-	uint16_t *first;			// pointer to the start of the array, i.e. raw
-	uint16_t *curr;			// pointer to the currently read element
+	uint8_t raw[BUFF_SIZE];
+	uint8_t *first;			// pointer to the start of the array, i.e. raw
+	uint8_t *curr;			// pointer to the currently read element
 	uint16_t buffSize;		// stores how much data is left unread
 	// to get empty, do !buffSize
 } FileBuff;
@@ -57,7 +54,7 @@ typedef struct {
 
 static inline void initFileStruct(FileStruct *fileStruct) {
 	for (int i = 0; i < BUFF_NUM; i++) {
-		fileStruct->structs[i].curr = fileStruct->structs[i].first = fileStruct->structs[i].data.samples;
+		fileStruct->structs[i].curr = fileStruct->structs[i].first = fileStruct->structs[i].raw;
 		fileStruct->structs[i].buffSize = 0;
 	}
 	fileStruct->currReading = BUFF_NUM - 1; // set to use the first fileStruct
@@ -75,10 +72,13 @@ static inline int readFile(FileStruct* f) {
 	if (f->fileEmpty) return -1;
 
 	if (f->currWriting == f->currReading) return -1;
-	if (fileStructEmpty(f, f->currWriting) && !f->fileEmpty) {
-		FRESULT res = f_read(&(f->file), f->structs[f->currWriting].data.raw, BUFF_SIZE, &(f->structs[f->currWriting].buffSize));
+	if (fileStructEmpty(f, f->currWriting)) {
+		FRESULT res = f_read(&(f->file), f->structs[f->currWriting].raw, BUFF_SIZE, &(f->structs[f->currWriting].buffSize));
+//		char buff[30];
+//		sprintf(buff, "res: %2d, buff: %4d, %4d", res, f->structs[f->currWriting].buffSize, HAL_GetTick() % 1000);
+//		LCD_DrawString(0, 0, buff);
 		if (res != FR_OK || f->structs[f->currWriting].buffSize == 0) {
-			f->fileEmpty = res;
+			f->fileEmpty = 1;
 			return -1;
 		}
 		f->currWriting = (f->currWriting + 1) % BUFF_NUM;
@@ -86,12 +86,15 @@ static inline int readFile(FileStruct* f) {
 	return 0;
 }
 
-static inline int16_t readSample(FileStruct* f) {
+static inline uint16_t readSample(FileStruct* f) {
+	uint16_t temp;
 	if (!f->inUse) return 0;
 
 	if (!fileStructEmpty(f, f->currReading)) {
 		f->structs[f->currReading].buffSize -= 2;
-		return *(f->structs[f->currReading].curr++);
+		temp = (f->structs[f->currReading].curr[1] << 8) | f->structs[f->currReading].curr[0];
+		f->structs[f->currReading].curr += 2;
+		return temp;
 	} else if (!fileStructEmpty(f, (f->currReading + 1) % BUFF_NUM)) {
 		f->currReading = (f->currReading + 1) % BUFF_NUM;
 		f->structs[f->currReading].curr = f->structs[f->currReading].first;
