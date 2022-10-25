@@ -98,6 +98,7 @@ int counter = 1;
 FileStruct sampleFile;
 uint16_t dac_out;
 int16_t sample_sum;
+FIL emptyFile;
 
 // stolen code
 #define bit_set(var,bitno) ((var) |= 1 << (bitno))
@@ -219,13 +220,16 @@ int main(void)
   {
 
 	  if (HAL_GetTick() - some_tick > 200) {
-		  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+//		  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 		  some_tick = HAL_GetTick();
 	  }
 
 //	  	  sprintf(buff, "(0) %4d (1) %4d", sampleFile.structs[0].buffSize, sampleFile.structs[1].buffSize);
 //	  	  LCD_DrawString(0, 210, buff);
-//	  	  sprintf(buff, "r:%d,w:%d,empty:%d", sampleFile.currReading, sampleFile.currWriting, sampleFile.fileEmpty);
+//	  	  sprintf(buff, "r:%d,w:%d,empty:%d,use:%d,%d,%d,%d", sampleFile.currReading, sampleFile.currWriting, sampleFile.fileEmpty, sampleFile.inUse,
+//	  			(!fileStructEmpty(&sampleFile, sampleFile.currReading)),
+//	  			(!fileStructEmpty(&sampleFile, (sampleFile.currReading + 1) % BUFF_NUM)),
+//	  					0);
 //	  	  LCD_DrawString(0, 230, buff);
 //		  sprintf(buff, "sample: %6d     ", sample_sum);
 //	      LCD_DrawString(20, 80, buff);
@@ -234,18 +238,35 @@ int main(void)
 	      LCD_DrawString(20, 80, buff);
 	  }
 
+//	    LCD_DrawString(200, 200, "a");
 		readFile(&sampleFile);
+//		LCD_DrawString(200, 200, "b");
 		__disable_irq();
 		if (!sampleFile.inUse) {
+//		  LCD_DrawString(200, 200, ":(");
+//		  sampleFile.file = emptyFile;
+		  f_close(&(sampleFile.file));
+//		  LCD_DrawString(200, 200, ":)");
 		  res = f_open(&(sampleFile.file), filename, FA_READ);
 		  if (res != FR_OK) error_handler(res, "Cannot open file");
+//		  LCD_DrawString(200, 200, "c");
 		  __enable_irq();
 		  initFileStruct(&sampleFile);
 		  __disable_irq();
 		  res = initFileHeader(&sampleFile);
 		  if (res != FR_OK) error_handler(res, "Cannot read file");
+//		  LCD_DrawString(200, 200, "d");
 		}
 		__enable_irq();
+//		LCD_DrawString(200, 200, "e");
+
+//		while (!fileStructEmpty(&sampleFile, sampleFile.currReading)) {
+//		for (int i = 0; i < 4000; i++) {
+//			sampleFile.structs[sampleFile.currReading].buffSize = 0;
+//			readSample(&sampleFile);
+//		}
+//		}
+//		LCD_DrawString(200, 200, "f");
 
 //				counter++;
 //		sample_sum = readSample(&sampleFile);
@@ -672,7 +693,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_12, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_1|SD_CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
@@ -689,8 +710,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PB0 PB1 PB12 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_12;
+  /*Configure GPIO pins : PB0 PB1 SD_CS_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|SD_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -783,7 +804,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 //		counter++;
 		sample_sum = readSample(&sampleFile);
 		dac_out = (sample_sum + 32768);
-		HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, (dac_out) >> 5);
+		HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, (dac_out) >> 6);
 	}
 }
 

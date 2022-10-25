@@ -1,4 +1,4 @@
-23:59:23 **** Incremental Build of configuration Debug for project AUDIO ****
+02:40:08 **** Incremental Build of configuration Debug for project AUDIO ****
 make -j16 all 
 arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xE -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -I../FATFS/Target -I../FATFS/App -I../Middlewares/Third_Party/FatFs/src -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/main.o"
 In file included from ../Core/Src/main.c:28:
@@ -40,28 +40,28 @@ In file included from ../FATFS/App/fatfs.h:26,
       |   ^~~~~~~
 ../Core/Src/main.c:87:3: note: include '<stdio.h>' or provide a declaration of 'sprintf'
 ../Core/Src/main.c: In function 'main':
-../Core/Src/main.c:176:5: warning: incompatible implicit declaration of built-in function 'sprintf'
-  176 |     sprintf(buff, "%d no more :(", res);
+../Core/Src/main.c:177:5: warning: incompatible implicit declaration of built-in function 'sprintf'
+  177 |     sprintf(buff, "%d no more :(", res);
       |     ^~~~~~~
-../Core/Src/main.c:176:5: note: include '<stdio.h>' or provide a declaration of 'sprintf'
-../Core/Src/main.c:200:5: warning: incompatible implicit declaration of built-in function 'sprintf'
-  200 |     sprintf(buff, "hertz: %d", header->sampleFreq);
+../Core/Src/main.c:177:5: note: include '<stdio.h>' or provide a declaration of 'sprintf'
+../Core/Src/main.c:201:5: warning: incompatible implicit declaration of built-in function 'sprintf'
+  201 |     sprintf(buff, "hertz: %d", header->sampleFreq);
       |     ^~~~~~~
-../Core/Src/main.c:200:5: note: include '<stdio.h>' or provide a declaration of 'sprintf'
-../Core/Src/main.c:200:28: warning: format '%d' expects argument of type 'int', but argument 3 has type 'uint32_t' {aka 'long unsigned int'} [-Wformat=]
-  200 |     sprintf(buff, "hertz: %d", header->sampleFreq);
+../Core/Src/main.c:201:5: note: include '<stdio.h>' or provide a declaration of 'sprintf'
+../Core/Src/main.c:201:28: warning: format '%d' expects argument of type 'int', but argument 3 has type 'uint32_t' {aka 'long unsigned int'} [-Wformat=]
+  201 |     sprintf(buff, "hertz: %d", header->sampleFreq);
       |                           ~^   ~~~~~~~~~~~~~~~~~~
       |                            |         |
       |                            int       uint32_t {aka long unsigned int}
       |                           %ld
-../Core/Src/main.c:206:27: warning: format '%d' expects argument of type 'int', but argument 3 has type 'uint32_t' {aka 'long unsigned int'} [-Wformat=]
-  206 |     sprintf(buff, "data: %d", header->dataChunkLength);
+../Core/Src/main.c:207:27: warning: format '%d' expects argument of type 'int', but argument 3 has type 'uint32_t' {aka 'long unsigned int'} [-Wformat=]
+  207 |     sprintf(buff, "data: %d", header->dataChunkLength);
       |                          ~^   ~~~~~~~~~~~~~~~~~~~~~~~
       |                           |         |
       |                           int       uint32_t {aka long unsigned int}
       |                          %ld
-../Core/Src/main.c:233:29: warning: format '%d' expects argument of type 'int', but argument 3 has type 'uint32_t' {aka 'long unsigned int'} [-Wformat=]
-  233 |     sprintf(buff, "count: %6d     ", sampleFile.sampleCount);
+../Core/Src/main.c:237:29: warning: format '%d' expects argument of type 'int', but argument 3 has type 'uint32_t' {aka 'long unsigned int'} [-Wformat=]
+  237 |     sprintf(buff, "count: %6d     ", sampleFile.sampleCount);
       |                           ~~^        ~~~~~~~~~~~~~~~~~~~~~~
       |                             |                  |
       |                             int                uint32_t {aka long unsigned int}
@@ -72,8 +72,8 @@ In file included from ../Core/Src/main.c:28:
   106 | }
       | ^
 At top level:
-../Core/Src/main.c:483:13: warning: 'MX_SDIO_SD_Init' defined but not used [-Wunused-function]
-  483 | static void MX_SDIO_SD_Init(void)
+../Core/Src/main.c:504:13: warning: 'MX_SDIO_SD_Init' defined but not used [-Wunused-function]
+  504 | static void MX_SDIO_SD_Init(void)
       |             ^~~~~~~~~~~~~~~
 arm-none-eabi-gcc -o "AUDIO.elf" @"objects.list"   -mcpu=cortex-m3 -T"C:\Users\pinkp\Documents\GitHub\ELEC3300-Project\AUDIO\STM32F103VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="AUDIO.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 Finished building target: AUDIO.elf
@@ -81,11 +81,11 @@ Finished building target: AUDIO.elf
 arm-none-eabi-size   AUDIO.elf 
 arm-none-eabi-objdump -h -S  AUDIO.elf  > "AUDIO.list"
    text	   data	    bss	    dec	    hex	filename
-  38532	    144	   8432	  47108	   b804	AUDIO.elf
+  39520	    144	  11472	  51136	   c7c0	AUDIO.elf
 Finished building: default.size.stdout
  
 Finished building: AUDIO.list
  
 
-23:59:24 Build Finished. 0 errors, 12 warnings. (took 863ms)
+02:40:10 Build Finished. 0 errors, 12 warnings. (took 1s.570ms)
 

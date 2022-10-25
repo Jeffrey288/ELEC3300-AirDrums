@@ -1,7 +1,7 @@
 #include "fatfs.h"
 #include "wav.h"
 #define BUFF_SIZE (1000)
-#define BUFF_NUM (2)
+#define BUFF_NUM (5)
 
 /**
  * Behaviour of FileStruct

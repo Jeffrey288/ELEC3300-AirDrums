@@ -43,6 +43,7 @@
 /* Disk status */
 static volatile DSTATUS Stat = STA_NOINIT;
 #define SD_USE_SPI
+//#define USE_NEW_LIB
 /* USER CODE END DECL */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -85,7 +86,11 @@ DSTATUS USER_initialize (
     Stat = STA_NOINIT;
     return Stat;
 #else
+#ifndef USE_NEW_LIB
 	return SD_disk_initialize(pdrv);
+#else
+    return USER_SPI_initialize(pdrv);
+#endif
 #endif
   /* USER CODE END INIT */
 }
@@ -104,7 +109,11 @@ DSTATUS USER_status (
     Stat = STA_NOINIT;
     return Stat;
 #else
+#ifndef USE_NEW_LIB
 	return SD_disk_status(pdrv);
+#else
+    return USER_SPI_status(pdrv);
+#endif
 #endif
   /* USER CODE END STATUS */
 }
@@ -128,7 +137,11 @@ DRESULT USER_read (
 #ifndef SD_USE_SPI
     return RES_OK;
 #else
+#ifndef USE_NEW_LIB
 	return SD_disk_read(pdrv, buff, sector, count);
+#else
+    return USER_SPI_read(pdrv, buff, sector, count);
+#endif
 #endif
   /* USER CODE END READ */
 }
@@ -154,7 +167,11 @@ DRESULT USER_write (
 #ifndef SD_USE_SPI
     return RES_OK;
 #else
+#ifndef USE_NEW_LIB
 	return SD_disk_write(pdrv, buff, sector, count);
+#else
+    return USER_SPI_write(pdrv, buff, sector, count);
+#endif
 #endif
   /* USER CODE END WRITE */
 }
@@ -179,7 +196,11 @@ DRESULT USER_ioctl (
     DRESULT res = RES_ERROR;
     return res;
 #else
+#ifndef USE_NEW_LIB
     return SD_disk_ioctl(pdrv, cmd, buff);
+#else
+    return USER_SPI_ioctl(pdrv, cmd, buff);
+#endif
 #endif
   /* USER CODE END IOCTL */
 }
