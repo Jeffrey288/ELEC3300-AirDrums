@@ -527,7 +527,7 @@ static FILESEM Files[_FS_LOCK];	/* Open object lock semaphores */
 #error Wrong _MAX_LFN setting
 #endif
 #if _USE_LFN == 1			/* LFN feature with static working buffer */
-static WCHAR LfnBuf[_MAX_LFN + 1];
+WCHAR LfnBuf[_MAX_LFN + 1];
 #define	DEFINE_NAMEBUF		BYTE sfn[12]
 #define INIT_BUF(dobj)		{ (dobj).fn = sfn; (dobj).lfn = LfnBuf; }
 #define	FREE_BUF()
@@ -1811,11 +1811,12 @@ void get_fileinfo (		/* No return code */
 	*p = 0;		/* Terminate SFN string by a \0 */
 
 #if _USE_LFN
+	LfnBuf[1];
 	if (fno->lfname) {
 		i = 0; p = fno->lfname;
 		if (dp->sect && fno->lfsize && dp->lfn_idx != 0xFFFF) {	/* Get LFN if available */
 			lfn = dp->lfn;
-			while ((w = *lfn++) != 0) {		/* Get an LFN character */
+			while ((w = LfnBuf[i]) != 0) {		/* Get an LFN character */
 #if !_LFN_UNICODE
 				w = ff_convert(w, 0);		/* Unicode -> OEM */
 				if (!w) { i = 0; break; }	/* No LFN if it could not be converted */
