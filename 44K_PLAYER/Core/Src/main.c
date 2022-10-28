@@ -88,7 +88,7 @@ void display_success(int num, const char* msg) {
 
 
 //#define AUDIO_PRECOMP 	1
-#define AUDIO_PRECOMP 	1000
+#define AUDIO_PRECOMP 	10000
 //#define AUDIO_FREQ		22050
 #define AUDIO_FREQ		44100
 #define SYSCLK_FREQ		72000000
