@@ -26,6 +26,7 @@
 #include "rina.h"
 #include "wav.h"
 #include "fileBuff.h"
+#include "audio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -88,9 +89,9 @@ void display_success(int num, const char* msg) {
 
 
 //#define AUDIO_PRECOMP 	1
-#define AUDIO_PRECOMP 	1000
-//#define AUDIO_FREQ		22050
-#define AUDIO_FREQ		44100
+#define AUDIO_PRECOMP 	40
+#define AUDIO_FREQ		22050
+//#define AUDIO_FREQ		44100
 #define SYSCLK_FREQ		72000000
 #define AUDIO_BLOCKS	5
 const uint16_t AUDIO_BUFFSIZE = (AUDIO_PRECOMP * AUDIO_BLOCKS);
@@ -118,7 +119,6 @@ char buff[31];
 uint8_t fileBuffer[1000];
 //uint16_t dac_out = 0;
 int counter = 1;
-FileStruct sampleFile;
 uint16_t dac_out;
 int16_t sample_sum;
 FIL emptyFile;
@@ -203,7 +203,7 @@ int main(void)
   HAL_Delay(20);
 
   int lineNum = 0;
-  char* filename;
+  char filename[15];
   while (1) {
 	  res = f_readdir(&dir, &fno);
 	  if (res != FR_OK || fno.fname[0] == 0) {
@@ -211,36 +211,33 @@ int main(void)
 		  LCD_DrawString(0, 20+20*(lineNum), buff);
 		  break;
 	  }
-	  filename = fno.fname;
-	  LCD_DrawString(0, 20+20*(lineNum++), fno.lfname);
-	  if (filename[0] == 'M') break;
+	  LCD_DrawString(0, 20+20*(lineNum++), fno.fname);
+	  if (fno.fname[0] == 'M') strcpy(filename, fno.fname);
+	  drumMatch(&fno);
   }
-
+  sprintf(buff, "audioINIT: %d", audioInit());
+  LCD_DrawString(0, 0, buff);
 
   // Initialize the fileStruct struct
-  res = f_open(&(sampleFile.file), filename, FA_READ);
+  setFileName(&sampleFile, filename);
+  res = openFile(&sampleFile);
   if (res != FR_OK) error_handler(res, "Cannot open file");
-
-  HAL_Delay(20);
-  initFileStruct(&sampleFile);
-  res = initFileHeader(&sampleFile);
-  if (res != FR_OK) error_handler(res, "Cannot read file");
 
   HAL_TIM_Base_Start(&htim4);
   HAL_TIM_Base_Start(&htim2);
   __HAL_TIM_ENABLE_IT(&htim2, TIM_IT_UPDATE);
-  __HAL_TIM_ENABLE_IT(&htim4, TIM_IT_UPDATE);
+//  __HAL_TIM_ENABLE_IT(&htim4, TIM_IT_UPDATE);
 
   // Display some information about the header
   	WavHeader *header = &(sampleFile.header);
-    sprintf(buff, "hertz: %d", header->sampleFreq);
-    LCD_DrawString(30, 100, buff);
-    sprintf(buff, "bits/sample: %d", header->bitsPerSample);
-    LCD_DrawString(30, 120, buff);
-    sprintf(buff, "channels: %d", header->channels);
-    LCD_DrawString(30, 140, buff);
-    sprintf(buff, "data: %d", header->dataChunkLength);
-    LCD_DrawString(30, 160, buff);
+//    sprintf(buff, "hertz: %d", header->sampleFreq);
+//    LCD_DrawString(30, 100, buff);
+//    sprintf(buff, "bits/sample: %d", header->bitsPerSample);
+//    LCD_DrawString(30, 120, buff);
+//    sprintf(buff, "channels: %d", header->channels);
+//    LCD_DrawString(30, 140, buff);
+//    sprintf(buff, "data: %d", header->dataChunkLength);
+//    LCD_DrawString(30, 160, buff);
 
 #endif
 
@@ -250,12 +247,14 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
     int some_tick = HAL_GetTick();
+    int pinC8 = 0;
+    int pinC9 = 0;
 
   while (1)
   {
 
 	  if (HAL_GetTick() - some_tick > 200) {
-//		  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+		  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 		  some_tick = HAL_GetTick();
 	  }
 
@@ -268,47 +267,42 @@ int main(void)
 //	  	  LCD_DrawString(0, 230, buff);
 //		  sprintf(buff, "sample: %6d     ", sample_sum);
 //	      LCD_DrawString(20, 80, buff);
-	  if (sampleFile.sampleCount % 3241 == 0) {
-		  sprintf(buff, "count: %6d     ", sampleFile.sampleCount);
-	      LCD_DrawString(20, 80, buff);
-	  }
 
-//	    LCD_DrawString(200, 200, "a");
+//		  if (sampleFile.sampleCount % 3241 == 0) {
+////			  sprintf(buff, "count: %6d     ", sampleFile.sampleCount);
+////			  LCD_DrawString(20, 80, buff);
+//		  }
+
 		readFile(&sampleFile);
-//		LCD_DrawString(200, 200, "b");
-		__disable_irq();
 		if (!sampleFile.inUse) {
-//		  LCD_DrawString(200, 200, ":(");
-//		  sampleFile.file = emptyFile;
-		  f_close(&(sampleFile.file));
-//		  LCD_DrawString(200, 200, ":)");
-		  res = f_open(&(sampleFile.file), filename, FA_READ);
-		  if (res != FR_OK) error_handler(res, "Cannot open file");
-//		  LCD_DrawString(200, 200, "c");
-		  __enable_irq();
-		  initFileStruct(&sampleFile);
-		  __disable_irq();
-		  res = initFileHeader(&sampleFile);
-		  if (res != FR_OK) error_handler(res, "Cannot read file");
-//		  LCD_DrawString(200, 200, "d");
+		  openFile(&sampleFile);
 		}
-		__enable_irq();
-//		LCD_DrawString(200, 200, "e");
 
-//		while (!fileStructEmpty(&sampleFile, sampleFile.currReading)) {
-//		for (int i = 0; i < 4000; i++) {
-//			sampleFile.structs[sampleFile.currReading].buffSize = 0;
-//			readSample(&sampleFile);
-//		}
-//		}
-//		LCD_DrawString(200, 200, "f");
+		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_8) == GPIO_PIN_RESET) {
+			if (!pinC8) {
+				pinC8 = 1;
+				drumPlay(KICK);
+			}
+		} else {
+			pinC8 = 0;
+		}
+		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_9) == GPIO_PIN_RESET) {
+			if (!pinC9) {
+				pinC9 = 1;
+				drumPlay(CRASH);
+			}
+		} else {
+			pinC9 = 0;
+		}
+		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_10) == GPIO_PIN_RESET) {
+			drumPlay(LOW_TOM);
+		}
+		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_11) == GPIO_PIN_RESET) {
+			drumPlay(HIGH_TOM);
+		}
+		drumUpdate();
 
-//				counter++;
-//		sample_sum = readSample(&sampleFile);
-//		dac_out = (sample_sum + 32768);
-//		HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, (dac_out) >> 5);
-//		while (testbit(TIM2->SR, 0) == 0); /* wait for timer reset */
-//		bit_clr(TIM2->SR, 0);
+
 
 		continue;
 
@@ -724,6 +718,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : PC8 PC9 PC10 PC11 */
+  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
   /*Configure GPIO pin : PA11 */
   GPIO_InitStruct.Pin = GPIO_PIN_11;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -811,6 +811,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		for (int i = 0; i < AUDIO_PRECOMP; i++) {
 			sample_sum = 0;
 			sample_sum += readSample(&sampleFile);
+			sample_sum += drumMix();
 			*(audioLeft.curr++) = (sample_sum + 32768);
 //			dac_buff.left[i] >>= 4;
 		}
