@@ -1,7 +1,10 @@
+#ifndef __FILE_BUFF_H
+#define __FILE_BUFF_H
+
 #include "fatfs.h"
 #include "wav.h"
 #define BUFF_SIZE (1000)
-#define BUFF_NUM (5)
+#define BUFF_NUM (2)
 
 /**
  * Behaviour of FileStruct
@@ -36,6 +39,7 @@ typedef struct {
 } FileBuff;
 
 typedef struct {
+	char fileName[13];
 	FIL file;
 	WavHeader header;
 	uint8_t fileEmpty;
@@ -52,6 +56,10 @@ typedef struct {
 //int initFileHeader(FileStruct*);
 //int readFile(FileStruct*);
 //int16_t readSample(FileStruct*);
+
+static inline void setFileName(FileStruct *fileStruct, char* name) {
+	strcpy(fileStruct->fileName, name);
+}
 
 static inline void initFileStruct(FileStruct *fileStruct) {
 	for (int i = 0; i < BUFF_NUM; i++) {
@@ -105,5 +113,13 @@ static inline uint16_t readSample(FileStruct* f) {
 	}
 }
 
+static inline int openFile(FileStruct* f) {
+	  int res = f_open(&(f->file), f->fileName, FA_READ);
+	  if (res != FR_OK) return res;
+	  initFileStruct(f);
+	  res = initFileHeader(f);
+	  if (res != FR_OK) return res;
+}
 
+#endif // __FILE_BUFF_H
 
