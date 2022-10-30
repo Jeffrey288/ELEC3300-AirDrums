@@ -20,12 +20,12 @@ static inline void activateDrum(DRUMS index) {
 
 static inline void deactivateDrum(DRUMS index) {
 	int i = 0;
-	for (; i < numActiveDrums && activeDrums[i] != index; i++);
-	if (i == numActiveDrums) return;
-	activeDrums[i] = activeDrums[--numActiveDrums];
+	for (; i < numActiveDrums && activeDrums[i] != index; i++); // find if index matches any drums
+	if (i == numActiveDrums) return; // if cannot find it then return
+	activeDrums[i] = activeDrums[--numActiveDrums]; // else, remove it from the list of drums
 }
 
-// --------------------------
+// ---- DRUM INITING AND FILE MATCHING -----------
 
 void drumMatch(FILINFO* file) {
 	for (int i = 0; i < DRUM_NUM; i++) {
@@ -42,33 +42,30 @@ void drumMatch(FILINFO* file) {
 int audioInit() {
 	for (int i = 0; i < DRUM_NUM; i++) {
 		if (!drumInitFlags[i]) return i;
-		initFileStruct(&drumFileStructs[i]);
+		if (openFile(&drumFileStructs[i]) != FR_OK) return i;
+//		initFileStruct(&drumFileStructs[i]);
 	}
 	return -1;
 }
 
+// -------------------
+
 void drumPlay(DRUMS index) {
-	openFile(&drumFileStructs[index]);
+//	openFile(&drumFileStructs[index]);
+	f_lseek(&(drumFileStructs[index].file), WAV_HEADER_SIZE);
+	initFileStruct(&drumFileStructs[index]);
 	activateDrum(index);
 }
 
 void drumUpdate() {
-	DRUMS temp[DRUM_NUM]; int temp_count = 0;
+	DRUMS temp[DRUM_NUM]; int temp_count = 0; // the drums that need to be deactivated
 	for (int i = 0; i < numActiveDrums; i++) {
 		readFile(&drumFileStructs[activeDrums[i]]);
-		if (!sampleFile.inUse) {
+		if (!drumFileStructs[activeDrums[i]].inUse) {
 			temp[temp_count++] = activeDrums[i];
 		}
 	}
 	for (int i = 0; i < temp_count; i++) {
 		deactivateDrum(temp[i]);
 	}
-}
-
-int16_t drumMix() {
-	int16_t res = 0;
-	for (int i = 0; i < numActiveDrums; i++) {
-		res += (int16_t) readSample(&drumFileStructs[activeDrums[i]]) >> 2;
-	}
-	return res;
 }

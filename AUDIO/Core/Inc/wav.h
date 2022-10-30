@@ -22,5 +22,6 @@ struct Wav_Header {
 typedef struct Wav_Header WAV_HEADER;
 typedef WAV_HEADER WavHeader;
 
+#define WAV_HEADER_SIZE sizeof(WavHeader)
 
 #endif

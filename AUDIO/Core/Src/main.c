@@ -89,7 +89,7 @@ void display_success(int num, const char* msg) {
 
 
 //#define AUDIO_PRECOMP 	1
-#define AUDIO_PRECOMP 	40
+#define AUDIO_PRECOMP 	500
 #define AUDIO_FREQ		22050
 //#define AUDIO_FREQ		44100
 #define SYSCLK_FREQ		72000000
@@ -122,7 +122,7 @@ int counter = 1;
 uint16_t dac_out;
 int16_t sample_sum;
 FIL emptyFile;
-
+extern int numActiveDrums;
 // stolen code
 #define bit_set(var,bitno) ((var) |= 1 << (bitno))
 #define bit_clr(var,bitno) ((var) &= ~(1 << (bitno)))
@@ -168,7 +168,6 @@ int main(void)
   /* USER CODE BEGIN 2 */
   LCD_INIT();
   HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
-
 //  TIM2->PSC = 7900;
 //  TIM2->ARR = 7900;
 //  TIM2->ARR = 0;
@@ -178,7 +177,11 @@ int main(void)
  TIM2->PSC = 0;
  TIM2->ARR = AUDIO_PRECOMP - 1;
 //  TIM2->ARR = 72000000 / 44100 - 1;
+  HAL_TIM_Base_Start(&htim4);
+  HAL_TIM_Base_Start(&htim2);
+  __HAL_TIM_ENABLE_IT(&htim2, TIM_IT_UPDATE);
 
+  // audioLeft is for playing the files
  for (int i = 0; i < AUDIO_BUFFSIZE; i++) {
 	 audioLeft.out[i] = 0;
  }
@@ -193,6 +196,7 @@ int main(void)
   FILINFO fno;
 
 #ifdef TESTFILE
+  // MOUNT THE SD CARD
   HAL_Delay(20);
   res = f_mount(&FatFs, "", 1);
   if (res != FR_OK) error_handler(res, "No sd card found!");
@@ -202,6 +206,7 @@ int main(void)
   if (res != FR_OK) error_handler(res, "Cannot open drive");
   HAL_Delay(20);
 
+  // LIST ALL OF THE AVAILABLE FILES
   int lineNum = 0;
   char filename[15];
   while (1) {
@@ -215,18 +220,15 @@ int main(void)
 	  if (fno.fname[0] == 'M') strcpy(filename, fno.fname);
 	  drumMatch(&fno);
   }
-  sprintf(buff, "audioINIT: %d", audioInit());
-  LCD_DrawString(0, 0, buff);
 
   // Initialize the fileStruct struct
   setFileName(&sampleFile, filename);
   res = openFile(&sampleFile);
   if (res != FR_OK) error_handler(res, "Cannot open file");
+  // AUDIO INIT
 
-  HAL_TIM_Base_Start(&htim4);
-  HAL_TIM_Base_Start(&htim2);
-  __HAL_TIM_ENABLE_IT(&htim2, TIM_IT_UPDATE);
-//  __HAL_TIM_ENABLE_IT(&htim4, TIM_IT_UPDATE);
+  sprintf(buff, "audioINIT: %d", audioInit());
+  LCD_DrawString(0, 0, buff);
 
   // Display some information about the header
   	WavHeader *header = &(sampleFile.header);
@@ -249,6 +251,7 @@ int main(void)
     int some_tick = HAL_GetTick();
     int pinC8 = 0;
     int pinC9 = 0;
+    HAL_DAC_Start_DMA(&hdac, audioLeft.channel, (uint32_t*)audioLeft.out, AUDIO_BUFFSIZE, DAC_ALIGN_12B_L);
 
   while (1)
   {
@@ -278,118 +281,49 @@ int main(void)
 		  openFile(&sampleFile);
 		}
 
+//		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_8) == GPIO_PIN_RESET) {
+//			if (!pinC8) {
+//				pinC8 = 1;
+//				drumPlay(HIGH_TOM);
+//			}
+//		} else {
+//			pinC8 = 0;
+//		}
+//		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_9) == GPIO_PIN_RESET) {
+//			if (!pinC9) {
+//				pinC9 = 1;
+//				drumPlay(CRASH);
+//			}
+//		} else {
+//			pinC9 = 0;
+//		}
+
+		sprintf(buff, "%d", numActiveDrums);
+		LCD_DrawString(200, 80, buff);
 		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_8) == GPIO_PIN_RESET) {
-			if (!pinC8) {
-				pinC8 = 1;
-				drumPlay(KICK);
-			}
-		} else {
-			pinC8 = 0;
+			drumPlay(KICK);
+			LCD_DrawString(220, 80, "8");
 		}
 		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_9) == GPIO_PIN_RESET) {
-			if (!pinC9) {
-				pinC9 = 1;
-				drumPlay(CRASH);
-			}
-		} else {
-			pinC9 = 0;
+			drumPlay(CRASH);
+			LCD_DrawString(220, 80, "9");
 		}
 		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_10) == GPIO_PIN_RESET) {
 			drumPlay(LOW_TOM);
+			LCD_DrawString(220, 80, "0");
 		}
 		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_11) == GPIO_PIN_RESET) {
 			drumPlay(HIGH_TOM);
+			LCD_DrawString(220, 80, "1");
 		}
 		drumUpdate();
 
 
-
 		continue;
-
-	  /**
-	   * TIM2 CH3
-	   * 72MHz -> 44.1kHz
-	   * 72Mhz/44.1kHz = 1632.65306
-	   * set AAR = 1632
-	   *
-	   * 72MHz->16kHz
-	   * ARR = 4499
-	   *
-	   *
-	   */
-
-
-  //	  LCD_Clear(0, 0, 240, 320, BACKGROUND);
-//  	  if (HAL_GetTick() - last_tick > 1000) {
-//  		  last_tick = HAL_GetTick();
-//  		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11));
-//  	  }
-
-//	  if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET) {
-//		  if (!btn_k2_pressed) {
-//			  btn_k2_pressed = 1;
-//
-//		  }
-//	  } else {
-//		  btn_k2_pressed = 0;
-//	  }
-
-
-//
-//      i++;
 
 //      DAC_DHR12R1 = DAC_OUT[i++];
 //      DAC->DHR12R1 = DAC_OUT[i++];
 #ifdef TESTFILE
-
-//			res = f_read(&fil, fileBuffer, 1000, &bytes_read);
-//
-//	  	if (res != FR_OK || bytes_read == 0) {
-//
-//	  	  f_close(&fil);
-//
-//	  	  res = f_open(&fil, filename, FA_READ);
-//	  	  if (res != FR_OK) error_handler(res, "Cannot open file");
-//
-//	  	  res = f_read(&fil, &header, sizeof(WAV_HEADER), &bytes_read);
-//	  	  if (res != FR_OK) error_handler(res, "Cannot read file");
-//
-//	  	  i=0;
-//	  	  continue;
-//	  	}
-//
-//	  	uint8_t *pt = fileBuffer;
-//		  if (i % 33222 == 0) {
-//			  sprintf(buff, "sample: %10d", i);
-//			  LCD_DrawString(0, 0, buff);
-//		  }
-
-//	  while(bytes_read >0 ) {
-//
-////		  sprintf(buff, "bytes_read: %3d", bytes_read);
-////			  LCD_DrawString(50, 180, buff);
-//		  while (testbit(TIM2->SR, 0) == 0); /* wait for timer reset */
-//		  bit_clr(TIM2->SR, 0);
-//		  i++;
-//		  bytes_read-=2;
-//		  pt+=2;
-////		  if (i % 2 == 0) continue;
-//			sample_sum = (pt[1] << 8) | pt[0];
-////			if (sample_sum < -32768)
-////			sample_sum = -32768;
-////			else if (sample_sum > 32767)
-////			sample_sum = 32767;
-//			sample_sum += 32768;
-//			dac_out = sample_sum;
-////			uint16_t output = sample_sum;
-////			sprintf(buff, "data: %d", sample_sum);
-////			LCD_DrawString(30, 200, buff);
-//		  HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, (dac_out) >> 6);
-////			sprintf(buff, "your mother %6d", sample_sum);
-////			LCD_DrawString(30, 210, buff);
-////			HAL_Delay(1000);
-//
-//	  }
 #else
 //	  if (i % 34331 == 0) {
 //		  sprintf(buff, "sample: %10d", i);
@@ -397,10 +331,6 @@ int main(void)
 //	  }
 	  uint16_t dac_out;
 	  sample_sum = crash[i];
-//	  if (sample_sum < -32768)
-//		sample_sum = -32768;
-//		else if (sample_sum > 32767)
-//		sample_sum = 32767;
 		sample_sum += 32768;
 		dac_out = sample_sum;
 		  HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, (dac_out) >> 4);
@@ -408,30 +338,6 @@ int main(void)
 		while (testbit(TIM2->SR, 0) == 0); /* wait for timer reset */
 		bit_clr(TIM2->SR, 0);
 #endif
-//	  	i++;
-//	  	while (bytes_read > 0) {
-//
-//	//		sample_sum += crash[i];
-//	//
-//
-//		  i++;
-//		  bytes_read -= 2;
-//		  pt += 2;
-//
-//	  	}
-
-//
-//      i = (i + 1) % MUSIC_LENGTH;
-
-//      while (testbit(TIM2->SR, 0) == 0); /* wait for timer reset */
-//      bit_clr(TIM2->SR, 0);
-//      HAL_Delay(1000);
-
-  //	  now_LR = 100;
-  //	  LCD_DrawEllipse(100, 200, prev_SR, prev_LR, BACKGROUND);
-  //	  LCD_Clear(120 - prev_LR, 200 - prev_SR, prev_LR * 2, prev_SR *2, BACKGROUND);
-
-  //	  HAL_Delay(10);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -810,8 +716,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 //		HAL_DAC_Stop_DMA(&hdac, DAC_CHANNEL_1);
 		for (int i = 0; i < AUDIO_PRECOMP; i++) {
 			sample_sum = 0;
-			sample_sum += readSample(&sampleFile);
-			sample_sum += drumMix();
+//			sample_sum += readSample(&sampleFile) / 4;
+			drumMix(sample_sum);
 			*(audioLeft.curr++) = (sample_sum + 32768);
 //			dac_buff.left[i] >>= 4;
 		}
@@ -821,10 +727,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 			audioLeft.toWrite = 0;
 		}
 //		HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)dac_buff.left, AUDIO_PRECOMP, DAC_ALIGN_12B_L);
-		if (!audioLeft.onFlag) {
-			HAL_DAC_Start_DMA(&hdac, audioLeft.channel, (uint32_t*)audioLeft.out, AUDIO_BUFFSIZE, DAC_ALIGN_12B_L);
-			audioLeft.onFlag = 1;
-		}
+//		if (!audioLeft.onFlag) {
+//
+//			audioLeft.onFlag = 1;
+//		}
 	}
 }
 

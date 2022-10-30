@@ -21,8 +21,14 @@ void drumMatch(FILINFO* fno);
 int audioInit();
 void drumPlay(DRUMS);
 void drumUpdate();
-int16_t drumMix();
 extern FileStruct drumFileStructs[DRUM_NUM];
 extern FileStruct sampleFile;
+extern DRUMS activeDrums[DRUM_NUM];
+extern int numActiveDrums;
+
+#define drumMix(sampleSum) \
+	for (int i = 0; i < numActiveDrums; i++) { \
+		sampleSum += readSample(&drumFileStructs[activeDrums[i]]) / 4; \
+	}
 
 #endif // __AUDIO_H

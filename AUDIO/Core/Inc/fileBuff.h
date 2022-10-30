@@ -3,8 +3,8 @@
 
 #include "fatfs.h"
 #include "wav.h"
-#define BUFF_SIZE (1000)
-#define BUFF_NUM (2)
+#define BUFF_SIZE (1000) // max 1000
+#define BUFF_NUM (3)
 
 /**
  * Behaviour of FileStruct
@@ -93,7 +93,7 @@ static inline int readFile(FileStruct* f) {
 	return 0;
 }
 
-static inline uint16_t readSample(FileStruct* f) {
+static inline int16_t readSample(FileStruct* f) {
 	uint16_t temp;
 	if (!f->inUse) return 0;
 
@@ -118,7 +118,7 @@ static inline int openFile(FileStruct* f) {
 	  if (res != FR_OK) return res;
 	  initFileStruct(f);
 	  res = initFileHeader(f);
-	  if (res != FR_OK) return res;
+	  return res;
 }
 
 #endif // __FILE_BUFF_H
