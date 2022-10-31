@@ -87,40 +87,8 @@ void display_success(int num, const char* msg) {
 //	  HAL_Delay(1000000);
 }
 
-
-//#define AUDIO_PRECOMP 	1
-#define AUDIO_PRECOMP 	500
-#define AUDIO_FREQ		22050
-//#define AUDIO_FREQ		44100
-#define SYSCLK_FREQ		72000000
-#define AUDIO_BLOCKS	5
-const uint16_t AUDIO_BUFFSIZE = (AUDIO_PRECOMP * AUDIO_BLOCKS);
-//#define AUDIO_ARR		(SYSCLK_FREQ / AUDIO_FREQ - 1)
-typedef union {
-	struct {
-		uint16_t left[AUDIO_PRECOMP];
-		uint16_t right[AUDIO_PRECOMP];
-	};
-	uint16_t data[2][AUDIO_PRECOMP];
-} DACBuff;
-DACBuff dac_buff;
-
-typedef struct {
-	uint16_t out[AUDIO_PRECOMP * AUDIO_BLOCKS];
-	uint16_t toWrite;
-	uint16_t *curr;
-	uint16_t *first;
-	uint32_t channel;
-	uint8_t onFlag;
-} AudioChannel;
-AudioChannel audioLeft;
-
 char buff[31];
-uint8_t fileBuffer[1000];
-//uint16_t dac_out = 0;
 int counter = 1;
-uint16_t dac_out;
-int16_t sample_sum;
 FIL emptyFile;
 extern int numActiveDrums;
 // stolen code
@@ -167,28 +135,7 @@ int main(void)
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   LCD_INIT();
-  HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
-//  TIM2->PSC = 7900;
-//  TIM2->ARR = 7900;
-//  TIM2->ARR = 0;
-  TIM4->ARR = SYSCLK_FREQ / AUDIO_FREQ - 1;
-// TIM3->ARR = 72000000 / 22050 - 1;
-//  TIM2->ARR = 72000000 / 23050 - 1;
- TIM2->PSC = 0;
- TIM2->ARR = AUDIO_PRECOMP - 1;
-//  TIM2->ARR = 72000000 / 44100 - 1;
-  HAL_TIM_Base_Start(&htim4);
-  HAL_TIM_Base_Start(&htim2);
-  __HAL_TIM_ENABLE_IT(&htim2, TIM_IT_UPDATE);
-
-  // audioLeft is for playing the files
- for (int i = 0; i < AUDIO_BUFFSIZE; i++) {
-	 audioLeft.out[i] = 0;
- }
- audioLeft.toWrite = 0;
- audioLeft.curr = audioLeft.first = audioLeft.out;
- audioLeft.onFlag = 0;
- audioLeft.channel = DAC_CHANNEL_1;
+  audioChannelInit();
 
   FRESULT res;
   FATFS FatFs;
@@ -707,30 +654,7 @@ static void MX_FSMC_Init(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim->Instance == TIM2) {
-//		counter++;
-//		sample_sum = readSample(&sampleFile);
-//		dac_buff.left[0] = (sample_sum + 32768);
-//		dac_out = (sample_sum + 32768);
-//		HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, (dac_out) >> 6);
-//		HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, (dac_buff.left[0]) >> 6);
-//		HAL_DAC_Stop_DMA(&hdac, DAC_CHANNEL_1);
-		for (int i = 0; i < AUDIO_PRECOMP; i++) {
-			sample_sum = 0;
-//			sample_sum += readSample(&sampleFile) / 4;
-			drumMix(sample_sum);
-			*(audioLeft.curr++) = (sample_sum + 32768);
-//			dac_buff.left[i] >>= 4;
-		}
-		audioLeft.toWrite++;
-		if (audioLeft.toWrite >= AUDIO_BLOCKS) {
-			audioLeft.curr = audioLeft.first;
-			audioLeft.toWrite = 0;
-		}
-//		HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)dac_buff.left, AUDIO_PRECOMP, DAC_ALIGN_12B_L);
-//		if (!audioLeft.onFlag) {
-//
-//			audioLeft.onFlag = 1;
-//		}
+		precomputeMix();
 	}
 }
 

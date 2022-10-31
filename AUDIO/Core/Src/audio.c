@@ -1,4 +1,5 @@
 #include "audio.h"
+#include "stm32f1xx_hal.h"
 
 uint8_t drumInitFlags[DRUM_NUM] = {0};
 char drumFileNames[DRUM_NUM][20] = { DRUM_MACRO(DRUM_FILENAME_DEF) };
@@ -68,4 +69,55 @@ void drumUpdate() {
 	for (int i = 0; i < temp_count; i++) {
 		deactivateDrum(temp[i]);
 	}
+}
+
+// ------------ AUDIO PLAYBACK RELATED -----------------
+
+const uint16_t AUDIO_BUFFSIZE = (AUDIO_PRECOMP * AUDIO_BLOCKS);
+AudioChannel audioLeft;
+AudioChannel audioRight; // unused for now
+
+inline void audioChannelInit() {
+	// audioLeft and audioRight is for storing the precomputed mix
+	for (int i = 0; i < AUDIO_BUFFSIZE; i++) {
+		audioLeft.out[i] = 0;
+		audioRight.out[i] = 0;
+	}
+	audioLeft.toWrite = 0;
+	audioRight.toWrite = 0;
+	audioLeft.curr = audioLeft.first = audioLeft.out;
+	audioRight.curr = audioRight.first = audioRight.out;
+//	audioLeft.onFlag = 1;
+//	audioRight.onFlag = 1;
+	audioLeft.channel = DAC_CHANNEL_1;
+	audioRight.channel = DAC_CHANNEL_2;
+	HAL_DAC_Start(&hdac, audioLeft.channel);
+	HAL_DAC_Start(&hdac, audioRight.channel);
+
+	// The timers
+	TIM4->ARR = SYSCLK_FREQ / AUDIO_FREQ - 1;
+	TIM2->ARR = AUDIO_PRECOMP - 1;
+
+	HAL_TIM_Base_Start(&htim4);
+	HAL_TIM_Base_Start(&htim2);
+	__HAL_TIM_ENABLE_IT(&htim2, TIM_IT_UPDATE);
+}
+
+int16_t sample_sum;
+inline void precomputeMix() {
+	for (int i = 0; i < AUDIO_PRECOMP; i++) {
+		sample_sum = 0;
+//		sample_sum += readSample(&sampleFile) / 4;
+		drumMix(sample_sum);
+		*(audioLeft.curr++) = (sample_sum + 32768);
+	}
+	audioLeft.toWrite++;
+	if (audioLeft.toWrite >= AUDIO_BLOCKS) {
+		audioLeft.curr = audioLeft.first;
+		audioLeft.toWrite = 0;
+	}
+//	if (!audioLeft.onFlag) {
+//	HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)dac_buff.left, AUDIO_PRECOMP, DAC_ALIGN_12B_L);
+//		audioLeft.onFlag = 1;
+//	}
 }
