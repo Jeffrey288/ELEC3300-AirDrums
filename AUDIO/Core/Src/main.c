@@ -134,6 +134,58 @@ int main(void)
   MX_SPI2_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
+
+  /**
+   * List of things to do
+   *
+   * audioChannelInit()
+   * f_mount, f_opendir
+   * for (f_readdir)
+   * 	drumMatch()
+   * audioInit()
+   *
+   * setFileName(&sampleFile, filename);
+   * res = openFile(&sampleFile);
+   *
+   * while (1) {
+   * 	readFile(&sampleFile);
+   * 	if (!sampleFile.inUse) {
+   * 		openFile(&sampleFile);
+   * 	}
+   *
+   * 	drumPlay(...);
+   * 	drumUpdate();
+   * }
+   *
+   * void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+   * 	if (htim->Instance == TIM2) {
+   * 	precomputeMix();
+   * 	}
+   * }
+   *
+   * ----------------------
+   *
+   * set up:
+   * TIM4
+   * TIM2 as slave of TIM4
+   * DAC1 using TIM4 as trigger, DMA half-word circular
+   * (DAC2)
+   * FATFS, User Defined
+   * - MAX_SS
+   * - _F_LOCK tune up to 10 (maximum number of simultaneously opened files)
+   * - change ff.h
+   * SPI2 (Master Duplex)
+   * - drag fatfs_sd.c
+   * - drag fatfs_sd.h
+   *
+   * audio.c
+   * audio.h
+   * fileBuffer.h
+   *
+   * main.c
+   * #include "fileBuffer.h"
+   * #include "audio.h"
+   */
   LCD_INIT();
   audioChannelInit();
 
