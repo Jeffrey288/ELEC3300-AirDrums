@@ -104,10 +104,11 @@ inline void audioChannelInit() {
 }
 
 int16_t sample_sum;
+int16_t playFlag = 0;
 inline void precomputeMix() {
 	for (int i = 0; i < AUDIO_PRECOMP; i++) {
 		sample_sum = 0;
-//		sample_sum += readSample(&sampleFile) / 4;
+		sample_sum += readSample(&sampleFile) / 4;
 		drumMix(sample_sum);
 		*(audioLeft.curr++) = (sample_sum + 32768);
 	}
@@ -115,6 +116,11 @@ inline void precomputeMix() {
 	if (audioLeft.toWrite >= AUDIO_BLOCKS) {
 		audioLeft.curr = audioLeft.first;
 		audioLeft.toWrite = 0;
+	}
+
+	if (!playFlag) {
+		playFlag = 1;
+		HAL_DAC_Start_DMA(&hdac, audioLeft.channel, (uint32_t*)audioLeft.out, AUDIO_BUFFSIZE, DAC_ALIGN_12B_L);
 	}
 //	if (!audioLeft.onFlag) {
 //	HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)dac_buff.left, AUDIO_PRECOMP, DAC_ALIGN_12B_L);
