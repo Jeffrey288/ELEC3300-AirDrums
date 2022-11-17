@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2022 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2022 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -36,6 +36,7 @@
 #include "MPU9250.h"
 #include "MPU9250_Config.h"
 #include "imu.h"
+#include "buttons.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -66,19 +67,22 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-//#define TESTFILE
-void error_handler(int res, const char* msg) {
+#define TESTFILE
+void error_handler(int res, const char *msg) {
 	char buff[100];
-		sprintf(buff, "%d %s", res, msg);
-	  LCD_DrawString(40, 0, buff);
-	  HAL_Delay(1000000);
+	sprintf(buff, "%d %s", res, msg);
+	LCD_DrawString(40, 0, buff);
+	HAL_Delay(1000000);
 }
-void display_success(int num, const char* msg) {
+void display_success(int num, const char *msg) {
 	char buff[100];
-		sprintf(buff, "%d %s", num, msg);
-	  LCD_DrawString(40, 0, buff);
+	sprintf(buff, "%d %s", num, msg);
+	LCD_DrawString(40, 0, buff);
 //	  HAL_Delay(1000000);
 }
+
+#define __left_ imu_setActive(&imuLeft);
+#define __right_ imu_setActive(&imuRight);
 
 char buff[31];
 int counter = 1;
@@ -89,193 +93,126 @@ extern int numActiveDrums;
 #define bit_clr(var,bitno) ((var) &= ~(1 << (bitno)))
 #define testbit(var,bitno) (((var)>>(bitno)) & 0x01)
 
-imuStruct imuLeft = (imuStruct) {
-	.port = GPIOE,
-	.pin = GPIO_PIN_5
-};
-imuStruct imuRight = (imuStruct) {
-	.port = GPIOE,
-	.pin = GPIO_PIN_6
-};
+imuStruct imuLeft = (imuStruct ) { .port = GPIOE, .pin = GPIO_PIN_5 };
+imuStruct imuRight = (imuStruct ) { .port = GPIOE, .pin = GPIO_PIN_6 };
 
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void)
-{
-  /* USER CODE BEGIN 1 */
+ * @brief  The application entry point.
+ * @retval int
+ */
+int main(void) {
+	/* USER CODE BEGIN 1 */
 // https://community.st.com/s/article/how-to-create-a-file-system-on-a-sd-card-using-stm32bubeide
-  //https://github.com/spanceac/electro-drums/blob/master/drums.c
-  /* USER CODE END 1 */
+	//https://github.com/spanceac/electro-drums/blob/master/drums.c
+	/* USER CODE END 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+	/* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+	HAL_Init();
 
-  /* USER CODE BEGIN Init */
+	/* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
+	/* USER CODE END Init */
 
-  /* Configure the system clock */
-  SystemClock_Config();
+	/* Configure the system clock */
+	SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
+	/* USER CODE BEGIN SysInit */
 
-  /* USER CODE END SysInit */
+	/* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_DMA_Init();
-  MX_FSMC_Init();
-  MX_DAC_Init();
-  MX_TIM2_Init();
-  MX_FATFS_Init();
-  MX_SPI2_Init();
-  MX_TIM4_Init();
-  MX_SPI1_Init();
-  /* USER CODE BEGIN 2 */
+	/* Initialize all configured peripherals */
+	MX_GPIO_Init();
+	MX_DMA_Init();
+	MX_FSMC_Init();
+	MX_DAC_Init();
+	MX_TIM2_Init();
+	MX_FATFS_Init();
+	MX_SPI2_Init();
+	MX_TIM4_Init();
+	MX_SPI1_Init();
+	/* USER CODE BEGIN 2 */
 
-  /**
-   * List of things to do
-   *
-   * audioChannelInit()
-   * f_mount, f_opendir
-   * for (f_readdir)
-   * 	drumMatch()
-   * audioInit()
-   *
-   * setFileName(&sampleFile, filename);
-   * res = openFile(&sampleFile);
-   *
-   * while (1) {
-   * 	readFile(&sampleFile);
-   * 	if (!sampleFile.inUse) {
-   * 		openFile(&sampleFile);
-   * 	}
-   *
-   * 	drumPlay(...);
-   * 	drumUpdate();
-   * }
-   *
-   * void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-   * 	if (htim->Instance == TIM2) {
-   * 	precomputeMix();
-   * 	}
-   * }
-   *
-   * ----------------------
-   *
-   * set up:
-   * TIM4
-   * TIM2 as slave of TIM4
-   * DAC1 using TIM4 as trigger, DMA half-word circular
-   * (DAC2)
-   * FATFS, User Defined
-   * - MAX_SS
-   * - _F_LOCK tune up to 10 (maximum number of simultaneously opened files)
-   * - change ff.h
-   * SPI2 (Master Duplex)
-   * - drag fatfs_sd.c
-   * - drag fatfs_sd.h
-   *
-   * audio.c
-   * audio.h
-   * fileBuffer.h
-   *
-   * main.c
-   * #include "fileBuffer.h"
-   * #include "audio.h"
-   */
-  LCD_INIT();
-  imu_setActive(&imuLeft);
-  MPU9250_Init();
-  MPU9250_SetAccelRange(ACCEL_RANGE_8G);
-  MPU9250_SetGyroRange(GYRO_RANGE_1000DPS);
-  imu_setActive(&imuRight);
-  MPU9250_Init();
-  MPU9250_SetAccelRange(ACCEL_RANGE_8G);
-  MPU9250_SetGyroRange(GYRO_RANGE_1000DPS);
-#ifdef TESTFILE
-  audioChannelInit();
-#endif
+	LCD_INIT();
 
-  FRESULT res;
-  FATFS FatFs;
-  DIR dir;
-  FILINFO fno;
+	__left_
+	MPU9250_Init();
+	MPU9250_SetAccelRange(ACCEL_RANGE_8G);
+	MPU9250_SetGyroRange(GYRO_RANGE_1000DPS);
+	__right_
+	MPU9250_Init();
+	MPU9250_SetAccelRange(ACCEL_RANGE_8G);
+	MPU9250_SetGyroRange(GYRO_RANGE_1000DPS);
+
+	audioChannelInit();
+	initButtons();
+
+	FRESULT res;
+	FATFS FatFs;
+	DIR dir;
+	FILINFO fno;
 
 #ifdef TESTFILE
-  // MOUNT THE SD CARD
-  HAL_Delay(20);
-  res = f_mount(&FatFs, "", 1);
-  if (res != FR_OK) error_handler(res, "No sd card found!");
-  HAL_Delay(20);
+	// MOUNT THE SD CARD
+	HAL_Delay(20);
+	res = f_mount(&FatFs, "", 1);
+	if (res != FR_OK)
+		error_handler(res, "No sd card found!");
+	HAL_Delay(20);
 
-  res = f_opendir(&dir, "0:");
-  if (res != FR_OK) error_handler(res, "Cannot open drive");
-  HAL_Delay(20);
+	res = f_opendir(&dir, "0:");
+	if (res != FR_OK)
+		error_handler(res, "Cannot open drive");
+	HAL_Delay(20);
 
-  // LIST ALL OF THE AVAILABLE FILES
-  int lineNum = 0;
-  char filename[15];
-  while (1) {
-	  res = f_readdir(&dir, &fno);
-	  if (res != FR_OK || fno.fname[0] == 0) {
-		  sprintf(buff, "%d no more :(", res);
-		  LCD_DrawString(0, 20+20*(lineNum), buff);
-		  break;
-	  }
-	  LCD_DrawString(0, 20+20*(lineNum++), fno.fname);
-	  if (fno.fname[0] == 'M') strcpy(filename, fno.fname);
-	  drumMatch(&fno);
-  }
+	// LIST ALL OF THE AVAILABLE FILES
+	while (1) {
+		res = f_readdir(&dir, &fno);
+		if (res != FR_OK || fno.fname[0] == 0)
+			break;
+		int len = strlen(fno.fname);
+		if (drumMatch(fno.fname) == -1
+				&& (fno.fname[len - 1] == 'V' || fno.fname[len - 1] == 'v')) {
+			addMusic(fno.fname);
+		}
+	}
 
-  // Initialize the fileStruct struct
-  setFileName(&sampleFile, filename);
-  res = openFile(&sampleFile);
-  if (res != FR_OK) error_handler(res, "Cannot open file");
-  // AUDIO INIT
+	for (int i = 0; i < musicFileNum; i++) {
+		LCD_DrawString(0, 20 + 20 * i, musicFilenames[i]);
+	}
 
-  sprintf(buff, "audioINIT: %d", audioInit());
-  LCD_DrawString(0, 0, buff);
+	// Initialize the fileStruct struct
+//	setFileName(&sampleFile, musicFilenames[0]);
+//	res = openFile(&sampleFile);
+//	if (res != FR_OK)
+//		error_handler(res, "Cannot open file");
+	// AUDIO INIT
 
-  // Display some information about the header
-  	WavHeader *header = &(sampleFile.header);
-//    sprintf(buff, "hertz: %d", header->sampleFreq);
-//    LCD_DrawString(30, 100, buff);
-//    sprintf(buff, "bits/sample: %d", header->bitsPerSample);
-//    LCD_DrawString(30, 120, buff);
-//    sprintf(buff, "channels: %d", header->channels);
-//    LCD_DrawString(30, 140, buff);
-//    sprintf(buff, "data: %d", header->dataChunkLength);
-//    LCD_DrawString(30, 160, buff);
+//	sprintf(buff, "audioINIT: %d", audioInit());
+//	LCD_DrawString(0, 0, buff);
 
 #endif
 
+	/* USER CODE END 2 */
 
-  /* USER CODE END 2 */
+	/* Infinite loop */
+	/* USER CODE BEGIN WHILE */
+	int some_tick = HAL_GetTick();
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-    int some_tick = HAL_GetTick();
-    int pinC8 = 0;
-    int pinC9 = 0;
-#ifdef TESTFILE
-//    HAL_DAC_Start_DMA(&hdac, audioLeft.channel, (uint32_t*)audioLeft.out, AUDIO_BUFFSIZE, DAC_ALIGN_12B_L);
-#endif
-
-	  imu_calibrateGyro(&imuLeft);
+	imu_calibrateGyro(&imuLeft);
 	//  imu_calibrateGyro(&imuRight);
-  while (1)
-  {
+	ButtonState PA0 = BTN_UP;
+	ButtonState PC13 = BTN_UP;
+	int musicNum = 0;
+	while (1) {
 
 		if (HAL_GetTick() - some_tick > 200) {
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 			some_tick = HAL_GetTick();
+
 		}
 
 #ifndef TESTFILE
@@ -314,77 +251,103 @@ int main(void)
 
 #endif
 
-
 #ifdef TESTFILE
-		readFile(&sampleFile);
-		if (!sampleFile.inUse) {
-			openFile(&sampleFile);
+
+
+		if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) {
+			if (PA0 == BTN_UP) {
+				PA0 = BTN_DOWN;
+				// run command
+				int res = setMusic(musicFilenames[musicNum]);
+				playMusic();
+//				seekMusic(0.5);
+				musicNum = (musicNum + 1) % musicFileNum;
+//				LCD_DrawString(0, 100, "PA0 down");
+
+				WavHeader *header = &(sampleFile.header);
+				sprintf(buff, "hertz: %d", header->sampleFreq);
+				LCD_DrawString(30, 140, buff);
+				sprintf(buff, "bits/sample: %d", header->bitsPerSample);
+				LCD_DrawString(30, 160, buff);
+				sprintf(buff, "channels: %d", header->channels);
+				LCD_DrawString(30, 180, buff);
+				sprintf(buff, "data: %d  ", header->dataChunkLength);
+				LCD_DrawString(30, 200, buff);
+				sprintf(buff, "debug %d %d %d     ", sampleFile.sampleCount, sampleFile.fileEmpty, sampleFile.inUse);
+				LCD_DrawString(30, 220, buff);
+			}
+		} else {
+			PA0 = BTN_UP;
+//			LCD_DrawString(0, 100, "PA0 up  ");
+		}
+
+
+		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET) {
+			if (PC13 == BTN_UP) {
+				PC13 = BTN_DOWN;
+				// run command
+				if (musicState == MUSIC_PLAYING) {
+					pauseMusic();
+				} else {
+					playMusic();
+				}
+//				stopMusic();
+//				seekMusic(0.5);
+//				sprintf(buff, "prog: %.2f", getMusicProgress());
+//				LCD_DrawString(0, 120, buff);
+			}
+		} else {
+			PC13 = BTN_UP;
+//			LCD_DrawString(0, 120, "PC13 up  ");
 		}
 
 		sprintf(buff, "%d", numActiveDrums);
 		LCD_DrawString(200, 80, buff);
-		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_8) == GPIO_PIN_RESET) {
-			drumPlay(KICK);
-			LCD_DrawString(220, 80, "8");
-		}
-		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_9) == GPIO_PIN_RESET) {
-			drumPlay(CRASH);
-			LCD_DrawString(220, 80, "9");
-		}
-		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_10) == GPIO_PIN_RESET) {
-			drumPlay(LOW_TOM);
-			LCD_DrawString(220, 80, "0");
-		}
-		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_11) == GPIO_PIN_RESET) {
-			drumPlay(HIGH_TOM);
-			LCD_DrawString(220, 80, "1");
-		}
+		updateButtons();
 		drumUpdate();
+		musicUpdate();
 #endif
-    /* USER CODE END WHILE */
+		/* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
-  }
-  /* USER CODE END 3 */
+		/* USER CODE BEGIN 3 */
+	}
+	/* USER CODE END 3 */
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
-void SystemClock_Config(void)
-{
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ * @brief System Clock Configuration
+ * @retval None
+ */
+void SystemClock_Config(void) {
+	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
 
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
+	/** Initializes the RCC Oscillators according to the specified parameters
+	 * in the RCC_OscInitTypeDef structure.
+	 */
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+	RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+	RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+	RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+		Error_Handler();
+	}
 
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+	/** Initializes the CPU, AHB and APB buses clocks
+	 */
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-  {
-    Error_Handler();
-  }
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
+		Error_Handler();
+	}
 }
 
 /* USER CODE BEGIN 4 */
@@ -398,18 +361,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
-void Error_Handler(void)
-{
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
-  /* USER CODE END Error_Handler_Debug */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
+void Error_Handler(void) {
+	/* USER CODE BEGIN Error_Handler_Debug */
+	/* User can add his own implementation to report the HAL error return state */
+	__disable_irq();
+	while (1) {
+	}
+	/* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT

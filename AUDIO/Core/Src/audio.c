@@ -1,11 +1,11 @@
 #include "audio.h"
 #include "stm32f1xx_hal.h"
+#include "fatfs.h"
 
 uint8_t drumInitFlags[DRUM_NUM] = {0};
 char drumFileNames[DRUM_NUM][20] = { DRUM_MACRO(DRUM_FILENAME_DEF) };
 
 FileStruct drumFileStructs[DRUM_NUM];
-FileStruct sampleFile;
 
 // ----- ACTIVE DRUMS -------
 
@@ -26,19 +26,74 @@ static inline void deactivateDrum(DRUMS index) {
 	activeDrums[i] = activeDrums[--numActiveDrums]; // else, remove it from the list of drums
 }
 
+// ------------ MUSIC PLAYER --------------
+
+MusicState musicState = MUSIC_UNINITED;
+FileStruct sampleFile; // the file storing the music being played
+
+char musicFilenames[20][15];
+uint16_t musicFileNum = 0;
+
+void addMusic(char* fileName) {
+	strcpy(musicFilenames[musicFileNum++], fileName);
+}
+
+int setMusic(char* fileName) {
+	stopMusic();
+	setFileName(&sampleFile, fileName);
+	musicState = MUSIC_PAUSED;
+	return openFile(&sampleFile);
+}
+
+int playMusic() {
+	musicState = MUSIC_PLAYING;
+}
+
+int pauseMusic() {
+	musicState = MUSIC_PAUSED;
+}
+
+int stopMusic() {
+	f_close(&(sampleFile.file));
+	musicState = MUSIC_UNINITED;
+	return 0;
+}
+
+int seekMusic(float pos) {
+	if (pos < 0 || pos >= 1) return -1;
+	sampleFile.sampleCount = pos * sampleFile.totalSampleCount;
+	return f_lseek(&(sampleFile.file), sizeof(WavHeader) + sampleFile.sampleCount * 2);
+	// mistake here: cannot put
+	// 		pos * sampleFile.sampleCount * 2
+	// because this may return an odd number
+}
+
+float getMusicProgress() {
+	if (sampleFile.totalSampleCount == 0) return -1;
+	return ((float) sampleFile.sampleCount / sampleFile.totalSampleCount);
+}
+
+void musicUpdate() {
+	readFile(&sampleFile);
+}
+
 // ---- DRUM INITING AND FILE MATCHING -----------
 
-void drumMatch(FILINFO* file) {
+// Read the filenames, and match them to the files
+// Returns -1 if there is no match, else returns the drum_num
+int drumMatch(char *fileName) {
 	for (int i = 0; i < DRUM_NUM; i++) {
 		if (!drumInitFlags[i]) {
-			if (!strcmp(file->fname, drumFileNames[i])) {
-				setFileName(&drumFileStructs[i], file->fname);
+			if (!strcmp(fileName, drumFileNames[i])) {
+				setFileName(&drumFileStructs[i], fileName);
 				drumInitFlags[i] = 1;
-				return;
+				return i;
 			}
 		}
 	}
+	return -1;
 }
+
 
 int audioInit() {
 	for (int i = 0; i < DRUM_NUM; i++) {
@@ -49,11 +104,11 @@ int audioInit() {
 	return -1;
 }
 
-// -------------------
+// -------------- DRUM PLAY -------------------
 
 void drumPlay(DRUMS index) {
-//	openFile(&drumFileStructs[index]);
-	f_lseek(&(drumFileStructs[index].file), WAV_HEADER_SIZE);
+	openFile(&drumFileStructs[index]);
+//	f_lseek(&(drumFileStructs[index].file), WAV_HEADER_SIZE);
 	initFileStruct(&drumFileStructs[index]);
 	activateDrum(index);
 }
@@ -62,13 +117,13 @@ void drumUpdate() {
 	DRUMS temp[DRUM_NUM]; int temp_count = 0; // the drums that need to be deactivated
 	for (int i = 0; i < numActiveDrums; i++) {
 		readFile(&drumFileStructs[activeDrums[i]]);
-		if (!drumFileStructs[activeDrums[i]].inUse) {
-			temp[temp_count++] = activeDrums[i];
-		}
+//		if (!drumFileStructs[activeDrums[i]].inUse) {
+//			temp[temp_count++] = activeDrums[i];
+//		}
 	}
-	for (int i = 0; i < temp_count; i++) {
-		deactivateDrum(temp[i]);
-	}
+//	for (int i = 0; i < temp_count; i++) {
+//		deactivateDrum(temp[i]);
+//	}
 }
 
 // ------------ AUDIO PLAYBACK RELATED -----------------
@@ -108,7 +163,8 @@ int16_t playFlag = 0;
 inline void precomputeMix() {
 	for (int i = 0; i < AUDIO_PRECOMP; i++) {
 		sample_sum = 0;
-		sample_sum += readSample(&sampleFile) / 4;
+		if (musicState == MUSIC_PLAYING)
+			sample_sum += readSample(&sampleFile) / 4;
 		drumMix(sample_sum);
 		*(audioLeft.curr++) = (sample_sum + 32768);
 	}
@@ -118,6 +174,7 @@ inline void precomputeMix() {
 		audioLeft.toWrite = 0;
 	}
 
+//	if (!(sampleFile.inUse)) stopMusic();
 	if (!playFlag) {
 		playFlag = 1;
 		HAL_DAC_Start_DMA(&hdac, audioLeft.channel, (uint32_t*)audioLeft.out, AUDIO_BUFFSIZE, DAC_ALIGN_12B_L);

@@ -48,6 +48,7 @@ typedef struct {
 	uint8_t currReading;
 	uint8_t currWriting;
 	uint32_t sampleCount;
+	uint32_t totalSampleCount;
 } FileStruct;
 
 #define fileStructEmpty(f, index) (!((f)->structs[index].buffSize))
@@ -71,11 +72,14 @@ static inline void initFileStruct(FileStruct *fileStruct) {
 	fileStruct->inUse = 1;
 	fileStruct->fileEmpty = 0;
 	fileStruct->sampleCount = 0;
+	fileStruct->totalSampleCount = 0;
 }
 
 static inline int initFileHeader(FileStruct *fileStruct) {
 	int bytes_read;
-	return f_read(&(fileStruct->file), &(fileStruct->header), sizeof(WAV_HEADER), &bytes_read);
+	int res = f_read(&(fileStruct->file), &(fileStruct->header), sizeof(WAV_HEADER), &bytes_read);
+	if (res == FR_OK) fileStruct->totalSampleCount = fileStruct->header.dataChunkLength / 2;
+	return res;
 }
 
 static inline int readFile(FileStruct* f) {
