@@ -67,7 +67,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-#define TESTFILE
+//#define TESTFILE
 void error_handler(int res, const char *msg) {
 	char buff[100];
 	sprintf(buff, "%d %s", res, msg);
@@ -81,8 +81,6 @@ void display_success(int num, const char *msg) {
 //	  HAL_Delay(1000000);
 }
 
-#define __left_ imu_setActive(&imuLeft);
-#define __right_ imu_setActive(&imuRight);
 
 char buff[31];
 int counter = 1;
@@ -138,11 +136,11 @@ int main(void) {
 
 	LCD_INIT();
 
-	__left_
+	imu_setActive(&imuLeft);
 	MPU9250_Init();
 	MPU9250_SetAccelRange(ACCEL_RANGE_8G);
 	MPU9250_SetGyroRange(GYRO_RANGE_1000DPS);
-	__right_
+	imu_setActive(&imuRight);
 	MPU9250_Init();
 	MPU9250_SetAccelRange(ACCEL_RANGE_8G);
 	MPU9250_SetGyroRange(GYRO_RANGE_1000DPS);
@@ -225,6 +223,7 @@ int main(void) {
 			imuLeft.gyro[i] = (imuLeft.raw[i + 3] - imuLeft.gyro_offset[i]) / 32.8;
 			imuLeft.mag[i] = imuLeft.raw[i + 6];
 		}
+
 //		imu_setActive(&imuRight);
 //		MPU9250_GetData(imuRight.raw, imuRight.raw + 6, imuRight.raw + 3);
 //		for (int i = 0; i < 3; i++) {
@@ -241,6 +240,13 @@ int main(void) {
 		LCD_DrawString(0, 80, buff);
 		sprintf(buff, "mag : %6.0f,%6.0f,%6.0f", imuLeft.mag[0], imuLeft.mag[1], imuLeft.mag[2]);
 		LCD_DrawString(0, 100, buff);
+
+		imu_filter(imuLeft.acc[0], imuLeft.acc[1], imuLeft.acc[2], imuLeft.gyro[0], imuLeft.gyro[1], imuLeft.gyro[2]);
+		float roll, pitch, yaw;
+		eulerAngles(q_est, &roll, &pitch, &yaw);
+
+		sprintf(buff, "ori : %6.0f,%6.0f,%6.0f", roll, pitch, yaw);
+		LCD_DrawString(0, 120, buff);
 
 //		sprintf(buff, "acc : %6.2f,%6.2f,%6.2f", imuRight.acc[0], imuRight.acc[1], imuRight.acc[2]);
 //		LCD_DrawString(0, 120, buff);

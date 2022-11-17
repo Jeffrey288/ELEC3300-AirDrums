@@ -147,7 +147,7 @@ inline void audioChannelInit() {
 	audioLeft.channel = DAC_CHANNEL_1;
 	audioRight.channel = DAC_CHANNEL_2;
 	HAL_DAC_Start(&hdac, audioLeft.channel);
-	HAL_DAC_Start(&hdac, audioRight.channel);
+//	HAL_DAC_Start(&hdac, audioRight.channel);
 
 	// The timers
 	TIM4->ARR = SYSCLK_FREQ / AUDIO_FREQ - 1;

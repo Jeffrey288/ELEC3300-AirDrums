@@ -1,5 +1,6 @@
 #include "MPU9250_Config.h"
 #include "MPU9250.h"
+#include "madgwickFilter.h"
 
 typedef struct {
 	int16_t raw[9];

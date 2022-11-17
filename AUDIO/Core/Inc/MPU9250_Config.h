@@ -5,6 +5,8 @@
  *      Author: Desert
  */
 
+#include "stm32f1xx_hal.h"
+
 #ifndef UTIL_MPU9250_CONFIG_H_
 #define UTIL_MPU9250_CONFIG_H_
 
