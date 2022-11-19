@@ -1,5 +1,7 @@
 #include "stm32f1xx_hal.h"
 
+extern int hits;
+
 typedef enum {
     BTN_UP,
     BTN_DOWN,
@@ -11,9 +13,9 @@ typedef enum {
     BTN_RELEASED,
 } ButtonEvent;
 
-typedef struct {
+typedef struct ButtonStruct{
     void (*eventListener)(ButtonEvent);
-    int (*stateRetriever)();
+    int (*stateRetriever)(struct ButtonStruct*);
     uint8_t pin;
     uint32_t last_pressed;
     uint16_t debounce_time;
@@ -32,7 +34,7 @@ static void addButton(Button button) {
 static inline void updateButtons() {
 
 	for (int i = 0; i < numButtons; i++) {
-		ButtonState tempState = buttons[i].stateRetriever() ? BTN_DOWN : BTN_UP;
+		ButtonState tempState = buttons[i].stateRetriever(&buttons[i]) ? BTN_DOWN : BTN_UP;
 		if (tempState == BTN_DOWN) {
 			buttons[i].last_pressed = HAL_GetTick();
 			if (buttons[i].state == BTN_UP) {
@@ -43,7 +45,7 @@ static inline void updateButtons() {
 			}
 		} else {
 			if (buttons[i].state == BTN_DOWN) {
-				if (HAL_GetTick() - buttons[i].last_pressed > buttons[i].debounce_time) {
+				if (HAL_GetTick() - buttons[i].last_pressed >= buttons[i].debounce_time) {
 					buttons[i].eventListener(BTN_RELEASED);
 					buttons[i].state = BTN_UP;
 				} else {

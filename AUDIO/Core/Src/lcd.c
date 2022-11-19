@@ -1,6 +1,7 @@
 #include "lcd.h"
 #include "ascii.h"	
 #include <math.h>
+#include <stdarg.h>
 
 void		LCD_REG_Config          ( void );
 void		LCD_FillColor           ( uint32_t ulAmout_Point, uint16_t usColor );
@@ -50,7 +51,7 @@ void LCD_Write_Cmd ( uint16_t usCmd )
 
 void LCD_Write_Data ( uint16_t usData )
 {
-	* ( __IO uint16_t * ) ( FSMC_Addr_LCD_DATA ) = usData;
+ 	* ( __IO uint16_t * ) ( FSMC_Addr_LCD_DATA ) = usData;
 }
 
 
@@ -395,8 +396,8 @@ void LCD_DrawChar ( uint16_t usC, uint16_t usP, const char cChar )
 			
 		}
 		
+
 	}
-	
 }
 
 
@@ -477,14 +478,12 @@ void LCD_DrawEllipse ( uint16_t usC, uint16_t usP, uint16_t SR, uint16_t LR, uin
 //	}
 }
 
-const uint16_t NAME_HEIGHT = 162;
-const uint16_t NAME_WIDTH = 180;
-void LCD_WriteName(uint16_t usC, uint16_t usP) {
-	// not implemented
+void LCD_DrawFormattedString(uint16_t x, uint16_t y, const char* fmt, ...) {
+	va_list valist;
+	static char buff[30];
+	sprintf(buff, fmt, valist);
+	LCD_DrawString(x, y, buff);
+	va_end(valist);
 }
 
-const uint16_t IMG_HEIGHT = 160;
-const uint16_t IMG_WIDTH = 160;
-void LCD_PrintImage() {
-	// not implemented
-}
+

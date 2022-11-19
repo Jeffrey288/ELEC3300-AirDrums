@@ -3,14 +3,13 @@
 //  madgwickFilter
 //
 //  Created by Blake Johnson on 4/28/20.
+//  Stolen from https://github.com/bjohnsonfl/Madgwick_Filter
 //
 
-#include "imu.h"
-
-struct quaternion q_est = { 1, 0, 0, 0};       // initialize with as unit vector with real component  = 1
+#include "stm32f1xx_hal.h"
+#include "madgwickFilter.h"
 
 struct quaternion quat_mult (struct quaternion L, struct quaternion R){
-
 
     struct quaternion product;
     product.q1 = (L.q1 * R.q1) - (L.q2 * R.q2) - (L.q3 * R.q3) - (L.q4 * R.q4);
@@ -25,7 +24,13 @@ struct quaternion quat_mult (struct quaternion L, struct quaternion R){
 // The resulting quaternion is a global variable (q_est), so it is not returned or passed by reference/pointer
 // Gyroscope Angular Velocity components are in Radians per Second
 // Accelerometer componets will be normalized
-void imu_filter(float ax, float ay, float az, float gx, float gy, float gz){
+
+void imu_filter(struct quaternion *q, float ax, float ay, float az, float gx, float gy, float gz, float deltaT){
+
+	struct quaternion q_est = *q;
+
+#define minGyro 0.01
+	if (gx * gx + gy * gy + gz * gz < 3 * 0.03 * 0.03) return;
 
     //Variables and constants
     struct quaternion q_est_prev = q_est;
@@ -111,11 +116,12 @@ void imu_filter(float ax, float ay, float az, float gx, float gy, float gz){
     */
     quat_scalar(&gradient, BETA);             // multiply normalized gradient by beta
     quat_sub(&q_est_dot, q_w, gradient);        // subtract above from q_w, the integrated gyro quaternion
-    quat_scalar(&q_est_dot, DELTA_T);
+    quat_scalar(&q_est_dot, deltaT);
     quat_add(&q_est, q_est_prev, q_est_dot);     // Integrate orientation rate to find position
     quat_Normalization(&q_est);                 // normalize the orientation of the estimate
                                                 //(shown in diagram, plus always use unit quaternions for orientation)
 
+    *q = q_est;
 }
 
 /*
@@ -125,15 +131,48 @@ void imu_filter(float ax, float ay, float az, float gx, float gy, float gz){
  Pitch is about the y axis, represented as theta
  Yaw is about the z axis, represented as psi (trident looking greek symbol)
  */
-void eulerAngles(struct quaternion q, float* roll, float* pitch, float* yaw){
+/**
+ * We specifically define, in our program,
+ * - roll as the angle of self-rotation of the drumstick
+ * - pitch as the up and down movement of the drumstick, and
+ * - yaw as the pointing direction of the drumstick
+ */
+void eulerAngles(struct quaternion *q, float *roll, float *pitch, float *yaw) {
+// Code for this part is stolen from
+// https://web.archive.org/web/20180419114257/http://bediyap.com/programming/convert-quaternion-to-euler-rotations/
 
-    *yaw = atan2f((2*q.q2*q.q3 - 2*q.q1*q.q4), (2*q.q1*q.q1 + 2*q.q2*q.q2 -1));  // equation (7)
-    *pitch = -asinf(2*q.q2*q.q4 + 2*q.q1*q.q3);                                  // equatino (8)
-    *roll  = atan2f((2*q.q3*q.q4 - 2*q.q1*q.q2), (2*q.q1*q.q1 + 2*q.q4*q.q4 -1));
+	// this is xyz, we don't want this (this is from the original code)
+//    *roll  = atan2f((2*q.q3*q.q4 - 2*q.q1*q.q2), (2*q.q1*q.q1 + 2*q.q4*q.q4 -1));
+//    *pitch = -asinf(2*q.q2*q.q4 + 2*q.q1*q.q3);                                  // equatino (8)
+//	*yaw = atan2f((2*q.q2*q.q3 - 2*q.q1*q.q4), (2*q.q1*q.q1 + 2*q.q2*q.q2 -1));  // equation (7)
 
-    *yaw *= (180.0f / PI);
-    *pitch *= (180.0f / PI);
-    *roll *= (180.0f / PI);
+	// this is xyz, we don't want this either
+//	 *roll = atan2f(-2*(q.q2*q.q3 - q.q1*q.q4),
+//	                    q.q1*q.q1 + q.q2*q.q2 - q.q3*q.q3 - q.q4*q.q4);
+//	 *pitch = -asinf(2*(q.q2*q.q4 + q.q1*q.q3));
+//	 *yaw = atan2f(-2*(q.q3*q.q4 - q.q1*q.q2),
+//			 q.q1*q.q1 - q.q2*q.q2 - q.q3*q.q3 + q.q4*q.q4);
+
+	// this is zyx, not what we want either
+//	 *yaw = atan2f(2*(q.q2*q.q3 + q.q1*q.q4), q.q1*q.q1 + q.q2*q.q2 - q.q3*q.q3 - q.q4*q.q4);
+//	 *pitch = asinf(-2*(q.q2*q.q4 - q.q1*q.q3));
+//	 *roll = atan2f(2*(q.q3*q.q4 + q.q1*q.q2), q.q1*q.q1 - q.q2*q.q2 - q.q3*q.q3 + q.q4*q.q4);
+
+	// this is zxy, part of which is what we want
+//	*yaw = atan2f(-2 * (q.q2 * q.q3 - q.q1 * q.q4),
+//			q.q1 * q.q1 - q.q2 * q.q2 + q.q3 * q.q3 - q.q4 * q.q4);
+//	*pitch = asinf(2 * (q.q3 * q.q4 + q.q1 * q.q2));
+//	*roll = atan2f(-2 * (q.q2 * q.q4 - q.q1 * q.q3),
+//			q.q1 * q.q1 - q.q2 * q.q2 - q.q3 * q.q3 + q.q4 * q.q4);
+
+	// combining these systems, we obtain
+	*roll = atan2f((2*q->q3*q->q4 - 2*q->q1*q->q2), (2*q->q1*q->q1 + 2*q->q4*q->q4 -1)); // from xyz/zyx
+	*pitch = asinf(2 * (q->q3 * q->q4 + q->q1 * q->q2)); // from zxy
+	*yaw = atan2f(-2 * (q->q2 * q->q3 - q->q1 * q->q4), q->q1 * q->q1 - q->q2 * q->q2 + q->q3 * q->q3 - q->q4 * q->q4); // from zxy
+
+	*yaw *= (180.0f / PI);
+	*pitch *= (180.0f / PI);
+	*roll *= (180.0f / PI);
 
 }
 

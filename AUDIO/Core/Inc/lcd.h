@@ -66,7 +66,8 @@ void            LCD_DrawChar		( uint16_t usC, uint16_t usP, const char cChar);
 void            LCD_DrawString		( uint16_t usC, uint16_t usP, const char * pStr);
 void            LCD_DrawDot		( uint16_t usC, uint16_t usP, uint16_t usColor );
 void 		LCD_DrawEllipse		( uint16_t usC, uint16_t usP, uint16_t SR, uint16_t LR, uint16_t usColor);
-void LCD_WriteName(uint16_t usC, uint16_t usP);
-void LCD_PrintImage();
+//void LCD_WriteName(uint16_t usC, uint16_t usP);
+//void LCD_PrintImage();
+void LCD_DrawFormattedString(uint16_t x, uint16_t y, const char* fmt, ...);
 #endif 
 

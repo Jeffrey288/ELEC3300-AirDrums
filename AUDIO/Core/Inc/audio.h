@@ -56,6 +56,8 @@ extern int numActiveDrums;
 #define AUDIO_FREQ		22050		// TIMER SETTING
 #define SYSCLK_FREQ		72000000	// SYSCLOCK FREQUENCY
 #define AUDIO_PRECOMP 	500		// precompute how many samples per interrupt
+//#define AUDIO_PRECOMP 	500		// precompute how many samples per interrupt
+//#define AUDIO_PRECOMP 	1000		// precompute how many samples per interrupt
 // will hardfault if you set this to 1000
 #define AUDIO_BLOCKS	5		// how many audio blocks are there for DAC DMA
 extern const uint16_t AUDIO_BUFFSIZE;

@@ -245,7 +245,7 @@ uint8_t MPU9250_Init()
 	writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_16G);
 
 	// setting the gyro range to 2000DPS as default
-	writeRegister(GYRO_CONFIG,GYRO_FS_SEL_250DPS);
+	writeRegister(GYRO_CONFIG,GYRO_FS_SEL_2000DPS);
 
 	// setting bandwidth to 184Hz as default
 	writeRegister(ACCEL_CONFIG2,DLPF_184);
