@@ -2,6 +2,8 @@
 
 ## to do list for imu
 - roll SHOULD NOT depend on pitch
+- pitch should not depend on yaw
+- find some way to use mahony
 - use roll data to determine rod orientation and hence determine vertial-component acceleration
 - add calibration sequence
 
