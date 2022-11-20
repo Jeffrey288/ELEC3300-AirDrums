@@ -2,6 +2,18 @@
 #include "MPU9250.h"
 #include "madgwickFilter.h"
 
+typedef enum {
+	IMU_IDLE,
+	IMU_NEG,
+	IMU_POS,
+	IMU_HIT_NP,
+	IMU_HIT_PN,
+	IMU_IDLE_NP,
+	IMU_IDLE_PN,
+} imuState;
+
+extern imuState states[6];
+
 typedef struct {
 // pin of imu
 	GPIO_TypeDef *port;
@@ -32,7 +44,10 @@ typedef struct {
 
 // some flags for buttons
 	int accelFlag;
-
+	uint32_t hit_tick;
+	imuState state;
+	uint32_t upCount;
+	uint32_t downCount;
 } imuStruct;
 
 extern imuStruct *imuStructs[2];

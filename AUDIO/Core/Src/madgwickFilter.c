@@ -142,7 +142,7 @@ void eulerAngles(struct quaternion *q, float *roll, float *pitch, float *yaw) {
 	// threeaxisrot\(([^,]*),([^,]*),([^,]*),([^,]*),([^,]*),res\);
 	// *roll = atan2f(\1,\2);\n *pitch = asinf (\3);\n *yaw = atan2f(\4,\5);\n
 
-	// this is xyz, we don't want this (this is from the original code)
+////	 this is xyz, we don't want this (this is from the original code)
 //    *roll  = atan2f((2*q->q3*q->q4 - 2*q->q1*q->q2), (2*q->q1*q->q1 + 2*q->q4*q->q4 -1));
 //    *pitch = -asinf(2*q->q2*q->q4 + 2*q->q1*q->q3);                                  // equatino (8)
 //	*yaw = atan2f((2*q->q2*q->q3 - 2*q->q1*q->q4), (2*q->q1*q->q1 + 2*q->q2*q->q2 -1));  // equation (7)
@@ -159,7 +159,7 @@ void eulerAngles(struct quaternion *q, float *roll, float *pitch, float *yaw) {
 //	 *pitch = asinf(-2*(q->q2*q->q4 - q->q1*q->q3));
 //	 *roll = atan2f(2*(q->q3*q->q4 + q->q1*q->q2), q->q1*q->q1 - q->q2*q->q2 - q->q3*q->q3 + q->q4*q->q4);
 
-	// this is zxy, part of which is what we want
+//	 this is zxy, part of which is what we want
 //	*yaw = atan2f(-2 * (q->q2 * q->q3 - q->q1 * q->q4),
 //			q->q1 * q->q1 - q->q2 * q->q2 + q->q3 * q->q3 - q->q4 * q->q4);
 //	*pitch = asinf(2 * (q->q3 * q->q4 + q->q1 * q->q2));
@@ -214,7 +214,8 @@ void eulerAngles(struct quaternion *q, float *roll, float *pitch, float *yaw) {
 //	*yaw = atan2f(-2 * (q->q2 * q->q3 - q->q1 * q->q4), q->q1 * q->q1 - q->q2 * q->q2 + q->q3 * q->q3 - q->q4 * q->q4); // from zxy
 
 	// hopefully better
-	*roll = atan2f(2*(q->q3*q->q4 - q->q1*q->q2),2*(q->q2*q->q3 + q->q1*q->q4)) + PI;  // yzy, except shifted by 180 degs
+	*roll = atan2f(-2 * (q->q2 * q->q4 - q->q1 * q->q3),
+			q->q1 * q->q1 - q->q2 * q->q2 - q->q3 * q->q3 + q->q4 * q->q4);
 	*pitch = atan2f( 2*(q->q3*q->q4 + q->q1*q->q2),q->q1*q->q1 - q->q2*q->q2 + q->q3*q->q3 - q->q4*q->q4); // xzy
 	*yaw = atan2f(-2 * (q->q2 * q->q3 - q->q1 * q->q4), q->q1 * q->q1 - q->q2 * q->q2 + q->q3 * q->q3 - q->q4 * q->q4);
 

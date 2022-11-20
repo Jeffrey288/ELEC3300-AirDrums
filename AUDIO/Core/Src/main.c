@@ -221,6 +221,7 @@ int main(void) {
 	HAL_TIM_Base_Start(&htim3);
 	__HAL_TIM_ENABLE_IT(&htim3, TIM_IT_UPDATE);
 
+
 	while (1) {
 
 		if (HAL_GetTick() - some_tick > 200) {
@@ -231,13 +232,15 @@ int main(void) {
 
 #ifndef TESTMUSIC
 
-		sprintf(buff, "hit count: %d", hits);
+		sprintf(buff, "hit count: %3d %3d %3d ", hits, imuLeft.upCount, imuLeft.downCount);
 		LCD_DrawString(0, 140, buff);
-////		LCD_DrawFormattedString(0, 140, "count: %d", count);
-//		sprintf(buff, "acc : %6.2f,%6.2f,%6.2f", imuLeft.acc[0], imuLeft.acc[1], imuLeft.acc[2]);
-//		LCD_DrawString(0, 40, buff);
-//		sprintf(buff, "%9.2f,%9.2f,%9.2f", imuLeft.gyro[0], imuLeft.gyro[1], imuLeft.gyro[2]);
-//		LCD_DrawString(0, 60, buff);
+//		LCD_DrawFormattedString(0, 140, "count: %d", count);
+		sprintf(buff, "acc : %6.2f,%6.2f,%6.2f", imuLeft.acc[0], imuLeft.acc[1],
+				imuLeft.acc[2]);
+		LCD_DrawString(0, 40, buff);
+		sprintf(buff, "%9.2f,%9.2f,%9.2f", imuLeft.gyro[0], imuLeft.gyro[1],
+				imuLeft.gyro[2]);
+		LCD_DrawString(0, 60, buff);
 //		sprintf(buff, "%9.2f,%9.2f,%9.2f", imuLeft.gyro_offset[0], imuLeft.gyro_offset[1], imuLeft.gyro_offset[2]);
 //		LCD_DrawString(0, 80, buff);
 //		sprintf(buff, "mag : %6.0f,%6.0f,%6.0f", imuLeft.mag[0], imuLeft.mag[1], imuLeft.mag[2]);
@@ -255,6 +258,32 @@ int main(void) {
 		LCD_DrawString(0, 120, buff);
 		sprintf(buff, "acc: %6.2f", imuLeft.pitch_acc);
 		LCD_DrawString(0, 160, buff);
+
+		for (int i = 0; i < 6; i++)
+			switch (states[i]) {
+			case IMU_IDLE:
+				LCD_DrawString(0, 180 + i * 16, "IDLE   ");
+				break;
+			case IMU_POS:
+				LCD_DrawString(0, 180 + i * 16, "POS    ");
+				break;
+			case IMU_NEG:
+				LCD_DrawString(0, 180 + i * 16, "NEG    ");
+				break;
+			case IMU_HIT_NP:
+				LCD_DrawString(0, 180 + i * 16, "HIT_NP ");
+				break;
+			case IMU_HIT_PN:
+				LCD_DrawString(0, 180 + i * 16, "HIT_PN ");
+				break;
+			case IMU_IDLE_NP:
+				LCD_DrawString(0, 180 + i * 16, "IDLE_NP");
+				break;
+			case IMU_IDLE_PN:
+				LCD_DrawString(0, 180 + i * 16, "IDLE_PN");
+				break;
+
+			};
 
 //		sprintf(buff, "acc : %6.2f,%6.2f,%6.2f", imuRight.acc[0], imuRight.acc[1], imuRight.acc[2]);
 //		LCD_DrawString(0, 120, buff);
@@ -282,7 +311,6 @@ int main(void) {
 //			PC13 = BTN_UP;
 //		}
 //
-
 
 #endif
 
