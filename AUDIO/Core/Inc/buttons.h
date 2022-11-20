@@ -5,6 +5,7 @@ extern int hits;
 typedef enum {
     BTN_UP,
     BTN_DOWN,
+	BTN_HOLD,
 } ButtonState;
 
 typedef enum {
@@ -19,6 +20,7 @@ typedef struct ButtonStruct{
     uint8_t pin;
     uint32_t last_pressed;
     uint16_t debounce_time;
+    uint16_t held_time;
     ButtonState state;
 } Button;
 
@@ -40,16 +42,15 @@ static inline void updateButtons() {
 			if (buttons[i].state == BTN_UP) {
 				buttons[i].state = BTN_DOWN;
 				buttons[i].eventListener(BTN_PRESSED);
-			} else {
-				buttons[i].eventListener(BTN_HELD);
 			}
 		} else {
-			if (buttons[i].state == BTN_DOWN) {
+			if (buttons[i].state == BTN_DOWN || buttons[i].state == BTN_HOLD) {
 				if (HAL_GetTick() - buttons[i].last_pressed >= buttons[i].debounce_time) {
 					buttons[i].eventListener(BTN_RELEASED);
 					buttons[i].state = BTN_UP;
-				} else {
+				} else if (HAL_GetTick() - buttons[i].last_pressed >= buttons[i].held_time && buttons[i].state == BTN_DOWN) {
 					buttons[i].eventListener(BTN_HELD);
+					buttons[i].state = BTN_HOLD;
 				}
 			}
 		}

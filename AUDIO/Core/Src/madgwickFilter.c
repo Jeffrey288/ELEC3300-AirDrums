@@ -29,8 +29,7 @@ void imu_filter(struct quaternion *q, float ax, float ay, float az, float gx, fl
 
 	struct quaternion q_est = *q;
 
-#define minGyro 0.01
-	if (gx * gx + gy * gy + gz * gz < 3 * 0.03 * 0.03) return;
+	if (gx * gx + gy * gy + gz * gz < 3 * 0.03 * 0.03 || (ax == 0.0f && ay == 0.0f && az == 0.0f)) return;
 
     //Variables and constants
     struct quaternion q_est_prev = q_est;
@@ -140,35 +139,85 @@ void imu_filter(struct quaternion *q, float ax, float ay, float az, float gx, fl
 void eulerAngles(struct quaternion *q, float *roll, float *pitch, float *yaw) {
 // Code for this part is stolen from
 // https://web.archive.org/web/20180419114257/http://bediyap.com/programming/convert-quaternion-to-euler-rotations/
+	// threeaxisrot\(([^,]*),([^,]*),([^,]*),([^,]*),([^,]*),res\);
+	// *roll = atan2f(\1,\2);\n *pitch = asinf (\3);\n *yaw = atan2f(\4,\5);\n
 
 	// this is xyz, we don't want this (this is from the original code)
-//    *roll  = atan2f((2*q.q3*q.q4 - 2*q.q1*q.q2), (2*q.q1*q.q1 + 2*q.q4*q.q4 -1));
-//    *pitch = -asinf(2*q.q2*q.q4 + 2*q.q1*q.q3);                                  // equatino (8)
-//	*yaw = atan2f((2*q.q2*q.q3 - 2*q.q1*q.q4), (2*q.q1*q.q1 + 2*q.q2*q.q2 -1));  // equation (7)
+//    *roll  = atan2f((2*q->q3*q->q4 - 2*q->q1*q->q2), (2*q->q1*q->q1 + 2*q->q4*q->q4 -1));
+//    *pitch = -asinf(2*q->q2*q->q4 + 2*q->q1*q->q3);                                  // equatino (8)
+//	*yaw = atan2f((2*q->q2*q->q3 - 2*q->q1*q->q4), (2*q->q1*q->q1 + 2*q->q2*q->q2 -1));  // equation (7)
 
 	// this is xyz, we don't want this either
-//	 *roll = atan2f(-2*(q.q2*q.q3 - q.q1*q.q4),
-//	                    q.q1*q.q1 + q.q2*q.q2 - q.q3*q.q3 - q.q4*q.q4);
-//	 *pitch = -asinf(2*(q.q2*q.q4 + q.q1*q.q3));
-//	 *yaw = atan2f(-2*(q.q3*q.q4 - q.q1*q.q2),
-//			 q.q1*q.q1 - q.q2*q.q2 - q.q3*q.q3 + q.q4*q.q4);
+//	 *roll = atan2f(-2*(q->q2*q->q3 - q->q1*q->q4),
+//	                    q->q1*q->q1 + q->q2*q->q2 - q->q3*q->q3 - q->q4*q->q4);
+//	 *pitch = -asinf(2*(q->q2*q->q4 + q->q1*q->q3));
+//	 *yaw = atan2f(-2*(q->q3*q->q4 - q->q1*q->q2),
+//			 q->q1*q->q1 - q->q2*q->q2 - q->q3*q->q3 + q->q4*q->q4);
 
-	// this is zyx, not what we want either
-//	 *yaw = atan2f(2*(q.q2*q.q3 + q.q1*q.q4), q.q1*q.q1 + q.q2*q.q2 - q.q3*q.q3 - q.q4*q.q4);
-//	 *pitch = asinf(-2*(q.q2*q.q4 - q.q1*q.q3));
-//	 *roll = atan2f(2*(q.q3*q.q4 + q.q1*q.q2), q.q1*q.q1 - q.q2*q.q2 - q.q3*q.q3 + q.q4*q.q4);
+////	 this is zyx, not what we want either
+//	 *yaw = atan2f(2*(q->q2*q->q3 + q->q1*q->q4), q->q1*q->q1 + q->q2*q->q2 - q->q3*q->q3 - q->q4*q->q4);
+//	 *pitch = asinf(-2*(q->q2*q->q4 - q->q1*q->q3));
+//	 *roll = atan2f(2*(q->q3*q->q4 + q->q1*q->q2), q->q1*q->q1 - q->q2*q->q2 - q->q3*q->q3 + q->q4*q->q4);
 
 	// this is zxy, part of which is what we want
-//	*yaw = atan2f(-2 * (q.q2 * q.q3 - q.q1 * q.q4),
-//			q.q1 * q.q1 - q.q2 * q.q2 + q.q3 * q.q3 - q.q4 * q.q4);
-//	*pitch = asinf(2 * (q.q3 * q.q4 + q.q1 * q.q2));
-//	*roll = atan2f(-2 * (q.q2 * q.q4 - q.q1 * q.q3),
-//			q.q1 * q.q1 - q.q2 * q.q2 - q.q3 * q.q3 + q.q4 * q.q4);
+//	*yaw = atan2f(-2 * (q->q2 * q->q3 - q->q1 * q->q4),
+//			q->q1 * q->q1 - q->q2 * q->q2 + q->q3 * q->q3 - q->q4 * q->q4);
+//	*pitch = asinf(2 * (q->q3 * q->q4 + q->q1 * q->q2));
+//	*roll = atan2f(-2 * (q->q2 * q->q4 - q->q1 * q->q3),
+//			q->q1 * q->q1 - q->q2 * q->q2 - q->q3 * q->q3 + q->q4 * q->q4);
 
-	// combining these systems, we obtain
-	*roll = atan2f((2*q->q3*q->q4 - 2*q->q1*q->q2), (2*q->q1*q->q1 + 2*q->q4*q->q4 -1)); // from xyz/zyx
-	*pitch = asinf(2 * (q->q3 * q->q4 + q->q1 * q->q2)); // from zxy
-	*yaw = atan2f(-2 * (q->q2 * q->q3 - q->q1 * q->q4), q->q1 * q->q1 - q->q2 * q->q2 + q->q3 * q->q3 - q->q4 * q->q4); // from zxy
+	// zyz nope
+//	  *roll = atan2f( 2*(q->q3*q->q4 - q->q1*q->q2),      2*(q->q2*q->q4 + q->q1*q->q3));
+//	 *pitch = acosf (      q->q1*q->q1 - q->q2*q->q2 - q->q3*q->q3 + q->q4*q->q4);
+//	 *yaw = atan2f(      2*(q->q3*q->q4 + q->q1*q->q2),-2*(q->q2*q->q4 - q->q1*q->q3));
+//
+	// zxz nupe
+//	  *roll = atan2f( 2*(q->q2*q->q4 + q->q1*q->q3),-2*(q->q3*q->q4 - q->q1*q->q2));
+//	 *pitch = acosf (q->q1*q->q1 - q->q2*q->q2 - q->q3*q->q3 + q->q4*q->q4);
+//	 *yaw = atan2f(2*(q->q2*q->q4 - q->q1*q->q3),2*(q->q3*q->q4 + q->q1*q->q2));
+//
+////	// yxy nupe
+//	  *roll = atan2f( 2*(q->q2*q->q3 - q->q1*q->q4),2*(q->q3*q->q4 + q->q1*q->q2));
+//	 *pitch = acosf (q->q1*q->q1 - q->q2*q->q2 + q->q3*q->q3 - q->q4*q->q4);
+//	 *yaw = atan2f(2*(q->q2*q->q3 + q->q1*q->q4),-2*(q->q3*q->q4 - q->q1*q->q2));
+//
+////	// yzx
+//	  *roll = atan2f( -2*(q->q2*q->q4 - q->q1*q->q3),q->q1*q->q1 + q->q2*q->q2 - q->q3*q->q3 - q->q4*q->q4); // this works well as roll
+//	 *pitch = asinf (2*(q->q2*q->q3 + q->q1*q->q4));
+//	 *yaw = atan2f(-2*(q->q3*q->q4 - q->q1*q->q2),q->q1*q->q1 - q->q2*q->q2 + q->q3*q->q3 - q->q4*q->q4);
+//
+//	//yzy
+//	  *roll = atan2f( 2*(q->q3*q->q4 + q->q1*q->q2),-2*(q->q2*q->q3 - q->q1*q->q4));
+//	 *pitch = acosf (q->q1*q->q1 - q->q2*q->q2 + q->q3*q->q3 - q->q4*q->q4);
+//	 *yaw = atan2f(2*(q->q3*q->q4 - q->q1*q->q2),2*(q->q2*q->q3 + q->q1*q->q4)); // this kinda works as roll, except inverted by 90 degs
+//
+//	// xyx nope
+//	  *roll = atan2f( 2*(q->q2*q->q3 + q->q1*q->q4),-2*(q->q2*q->q4 - q->q1*q->q3));
+//	 *pitch = acosf (q->q1*q->q1 + q->q2*q->q2 - q->q3*q->q3 - q->q4*q->q4);
+//	 *yaw = atan2f(2*(q->q2*q->q3 - q->q1*q->q4),2*(q->q2*q->q4 + q->q1*q->q3));
+//
+//	//xzy
+//	  *roll = atan2f( 2*(q->q3*q->q4 + q->q1*q->q2),q->q1*q->q1 - q->q2*q->q2 + q->q3*q->q3 - q->q4*q->q4); // this works as a good pitch
+//	  // but its positives and negatives are affected by init position, and possibly instability at certain angles
+//	 *pitch = asinf (-2*(q->q2*q->q3 - q->q1*q->q4));
+//	 *yaw = atan2f(2*(q->q2*q->q4 + q->q1*q->q3),q->q1*q->q1 + q->q2*q->q2 - q->q3*q->q3 - q->q4*q->q4);
+//
+//	// xzx
+//	  *roll = atan2f( 2*(q->q2*q->q4 - q->q1*q->q3),2*(q->q2*q->q3 + q->q1*q->q4));
+//	 *pitch = acosf (q->q1*q->q1 + q->q2*q->q2 - q->q3*q->q3 - q->q4*q->q4);
+//	 *yaw = atan2f(2*(q->q2*q->q4 + q->q1*q->q3),-2*(q->q2*q->q3 - q->q1*q->q4));
+
+
+//	// combining these systems, we obtain
+//	*roll = atan2f((2*q->q3*q->q4 - 2*q->q1*q->q2), (2*q->q1*q->q1 + 2*q->q4*q->q4 -1)); // from xyz/zyx
+//	*pitch = asinf(2 * (q->q3 * q->q4 + q->q1 * q->q2)); // from zxy
+//	*yaw = atan2f(-2 * (q->q2 * q->q3 - q->q1 * q->q4), q->q1 * q->q1 - q->q2 * q->q2 + q->q3 * q->q3 - q->q4 * q->q4); // from zxy
+
+	// hopefully better
+	*roll = atan2f(2*(q->q3*q->q4 - q->q1*q->q2),2*(q->q2*q->q3 + q->q1*q->q4)) + PI;  // yzy, except shifted by 180 degs
+	*pitch = atan2f( 2*(q->q3*q->q4 + q->q1*q->q2),q->q1*q->q1 - q->q2*q->q2 + q->q3*q->q3 - q->q4*q->q4); // xzy
+	*yaw = atan2f(-2 * (q->q2 * q->q3 - q->q1 * q->q4), q->q1 * q->q1 - q->q2 * q->q2 + q->q3 * q->q3 - q->q4 * q->q4);
+
 
 	*yaw *= (180.0f / PI);
 	*pitch *= (180.0f / PI);

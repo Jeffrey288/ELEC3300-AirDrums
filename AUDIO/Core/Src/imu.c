@@ -43,8 +43,9 @@ void updateIMUs() {
  	for (int i = 1; i < 7; i++) imuLeft.prev_pitch[i] = imuLeft.prev_pitch[i - 1];
 	imuLeft.prev_pitch[0] = imuLeft.pitch;
 
-//	if (imuLeft.pitch_acc < -15) imuLeft.accelFlag = 1;
-	if (imuLeft.acc[2] < -15) imuLeft.accelFlag = 1;
+	if (imuLeft.pitch_acc < -10) imuLeft.accelFlag = 1;
+//	if (imuLeft.pitch_acc < -10) imuLeft.accelFlag = -1;
 	else imuLeft.accelFlag = 0;
+//	if (imuLeft.acc[2] < -15) imuLeft.accelFlag = 1;
 //	if (imuLeft.acc[2] > 30) imuLeft.accelFlag = 0;
 }
