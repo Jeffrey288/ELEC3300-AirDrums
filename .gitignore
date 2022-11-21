@@ -227,3 +227,5 @@ AUDIO/Debug/objects.list
 .metadata/.plugins/org.eclipse.cdt.core/.log
 .metadata/.log
 .metadata/.ide.log
+Test/Test Debug.launch
+*.ld

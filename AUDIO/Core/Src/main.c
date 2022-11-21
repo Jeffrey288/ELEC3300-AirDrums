@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
 #include "dac.h"
 #include "dma.h"
 #include "fatfs.h"
@@ -38,6 +39,13 @@
 #include "imu.h"
 #include "buttons.h"
 #include "kalman.h"
+
+// GUI includes
+#include <stdio.h>
+
+#include "bsp_ili9341_lcd.h"
+#include "bsp_xpt2046_lcd.h"
+#include "gui.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -69,8 +77,9 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 //#define TESTMUSIC
-Kalman accKalman[3];
-Kalman gyroKalman[3];
+#define IVANCODE
+//#define USEIMU
+
 void error_handler(int res, const char *msg) {
 	char buff[100];
 	sprintf(buff, "%d %s", res, msg);
@@ -85,78 +94,74 @@ void display_success(int num, const char *msg) {
 }
 
 char buff[31];
-int counter = 1;
-FIL emptyFile;
 extern int numActiveDrums;
-// stolen code
-#define bit_set(var,bitno) ((var) |= 1 << (bitno))
-#define bit_clr(var,bitno) ((var) &= ~(1 << (bitno)))
-#define testbit(var,bitno) (((var)>>(bitno)) & 0x01)
 
-int count = 0;
-uint32_t imu_last_tick;
 
 /* USER CODE END 0 */
 
 /**
- * @brief  The application entry point.
- * @retval int
- */
-int main(void) {
-	/* USER CODE BEGIN 1 */
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
+  /* USER CODE BEGIN 1 */
 // https://community.st.com/s/article/how-to-create-a-file-system-on-a-sd-card-using-stm32bubeide
 	//https://github.com/spanceac/electro-drums/blob/master/drums.c
-	/* USER CODE END 1 */
+  /* USER CODE END 1 */
 
-	/* MCU Configuration--------------------------------------------------------*/
+  /* MCU Configuration--------------------------------------------------------*/
 
-	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-	HAL_Init();
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
 
-	/* USER CODE BEGIN Init */
+  /* USER CODE BEGIN Init */
 
-	/* USER CODE END Init */
+  /* USER CODE END Init */
 
-	/* Configure the system clock */
-	SystemClock_Config();
+  /* Configure the system clock */
+  SystemClock_Config();
 
-	/* USER CODE BEGIN SysInit */
+  /* USER CODE BEGIN SysInit */
 
-	/* USER CODE END SysInit */
+  /* USER CODE END SysInit */
 
-	/* Initialize all configured peripherals */
-	MX_GPIO_Init();
-	MX_DMA_Init();
-	MX_FSMC_Init();
-	MX_DAC_Init();
-	MX_TIM2_Init();
-	MX_FATFS_Init();
-	MX_SPI2_Init();
-	MX_TIM4_Init();
-	MX_SPI1_Init();
-	MX_TIM3_Init();
-	/* USER CODE BEGIN 2 */
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_FSMC_Init();
+  MX_DAC_Init();
+  MX_TIM2_Init();
+  MX_FATFS_Init();
+  MX_SPI2_Init();
+  MX_TIM4_Init();
+  MX_SPI1_Init();
+  MX_TIM3_Init();
+  MX_ADC1_Init();
+  /* USER CODE BEGIN 2 */
 
+#ifdef IVANCODE
+	ILI9341_Init();
+	ILI9341_GramScan(3);
+	LCD_SetBackColor(WHITE);
+	ILI9341_Clear(0, 0, 320, 240);
+#else
 	LCD_INIT();
+#endif
 
+#ifdef USEIMU
 	imu_setActive(&imuLeft);
 	MPU9250_Init();
-//	writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_16G);
-//	writeRegister(GYRO_CONFIG,GYRO_FS_SEL_2000DPS);
-
-//	MPU9250_SetAccelRange(ACCEL_RANGE_8G);
-//	MPU9250_SetGyroRange(GYRO_RANGE_2000DPS);
 //	imu_setActive(&imuRight);
 //	MPU9250_Init();
-//	MPU9250_SetAccelRange(ACCEL_RANGE_8G);
-//	MPU9250_SetGyroRange(GYRO_RANGE_1000DPS);
+#endif
 
+#ifdef TESTMUSIC
 	FRESULT res;
 	FATFS FatFs;
 	DIR dir;
 	FILINFO fno;
 
-#ifdef TESTMUSIC
 	// MOUNT THE SD CARD
 	HAL_Delay(20);
 	res = f_mount(&FatFs, "", 1);
@@ -185,52 +190,74 @@ int main(void) {
 		LCD_DrawString(0, 20 + 20 * i, musicFilenames[i]);
 	}
 
-
 #endif
 
-	/* USER CODE END 2 */
-
-	/* Infinite loop */
-	/* USER CODE BEGIN WHILE */
-	int some_tick = HAL_GetTick();
-
-//	imu_calibrateGyro(&imuLeft);
-//	  imu_calibrateGyro(&imuRight);
-	ButtonState PA0 = BTN_UP;
-	ButtonState PC13 = BTN_UP;
-	int musicNum = 0;
-
-	for (int i = 0; i < 3; i++)
-		accKalman[i] = kalman(0.21, 0.36)
-	;
-//	for (int i = 0; i < 3; i++) gyroKalman[i] = kalman(20, 0.3);
-	for (int i = 0; i < 3; i++)
-		gyroKalman[i] = kalman(10, 0.3)
-	;
-//		gyroKalman[i] = kalman(400, 0.3);
-//	gyroKalman[0] = kalman(1, 0.2);
-//	gyroKalman[1] = kalman(1, 0.2);
-//	gyroKalman[2] = kalman(2, 0.2);
-
+#ifdef TESTMUSIC
 	audioChannelInit();
+#endif
+
 	initButtons();
 
-	imu_last_tick = HAL_GetTick();
+#ifdef USEIMU
+	imu_calibrateGyro(&imuLeft);
+	imu_calibrateGyro(&imuRight);
 	TIM3->PSC = (72000000 / 72000) - 1;
 	TIM3->ARR = (72000 / 200) - 1;
 	HAL_TIM_Base_Start(&htim3);
 	__HAL_TIM_ENABLE_IT(&htim3, TIM_IT_UPDATE);
+#endif
 
+#ifdef IVANCODE
+	startlogo(); // displays logo screen
+	while (StartProcess())
+		; // Wait starting signal
+	LCD_Clear(0, 0, 320, 240, WHITE);
+	LCD_SetBackColor(WHITE);
+
+	HAL_ADC_Start(&hadc1);
+	HAL_ADC_PollForConversion(&hadc1, 1000);
+//	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+
+	MainMenuInterface();
+
+#endif
+
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+	int last_tick = HAL_GetTick();
+
+	ButtonState PA0 = BTN_UP;
+	ButtonState PC13 = BTN_UP;
+	int musicNum = 0; // temporary variable for testing purposes
 
 	while (1) {
 
-		if (HAL_GetTick() - some_tick > 200) {
+		if (HAL_GetTick() - last_tick > 200) {
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
-			some_tick = HAL_GetTick();
+			last_tick = HAL_GetTick();
 
 		}
 
-#ifndef TESTMUSIC
+#ifdef IVANCODE
+		if (XPT2046_TouchDetect() == TOUCH_PRESSED) {
+			XPT2046_Touch(posinfo);
+			InterfaceSelector(posinfo[0], posinfo[1], GUISTACK[0]);
+			if (currentinterface != GUISTACK[0]) {
+				CurrentInterface(GUISTACK[0]);
+				currentinterface = GUISTACK[0];
+			}
+
+			//printcurrentstack();
+			//printtouchposition(posinfo[0],posinfo[1]);
+			//MusicPlayerControl(posinfo[0],posinfo[1]);
+			//MusicPlayerInterface(posinfo[0]);
+
+		}
+#endif
+
+#ifdef USEIMU
 
 		sprintf(buff, "hit count: %3d %3d %3d ", hits, imuLeft.upCount, imuLeft.downCount);
 		LCD_DrawString(0, 140, buff);
@@ -292,26 +319,6 @@ int main(void) {
 //		sprintf(buff, "mag : %6.2f,%6.2f,%6.2f", imuRight.mag[0], imuRight.mag[1], imuRight.mag[2]);
 //		LCD_DrawString(0, 160, buff);
 //
-//
-//		if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) {
-//			if (PA0 == BTN_UP) {
-//				PA0 = BTN_DOWN;
-//				MPU9250_SetGyroRange(GYRO_RANGE_2000DPS);
-//			}
-//		} else {
-//			PA0 = BTN_UP;
-//		}
-//
-//		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET) {
-//			if (PC13 == BTN_UP) {
-//				PC13 = BTN_DOWN;
-//				MPU9250_SetGyroRange(GYRO_RANGE_250DPS);
-//			}
-//		} else {
-//			PC13 = BTN_UP;
-//		}
-//
-
 #endif
 
 #ifdef TESTMUSIC
@@ -369,58 +376,72 @@ int main(void) {
 		drumUpdate();
 		musicUpdate();
 #endif
-		updateButtons();
-		/* USER CODE END WHILE */
 
-		/* USER CODE BEGIN 3 */
+		updateButtons();
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
 	}
-	/* USER CODE END 3 */
+  /* USER CODE END 3 */
 }
 
 /**
- * @brief System Clock Configuration
- * @retval None
- */
-void SystemClock_Config(void) {
-	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
-	/** Initializes the RCC Oscillators according to the specified parameters
-	 * in the RCC_OscInitTypeDef structure.
-	 */
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-	RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-	RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
-	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-	RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
-		Error_Handler();
-	}
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
-	/** Initializes the CPU, AHB and APB buses clocks
-	 */
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
-		Error_Handler();
-	}
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
+  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV6;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+  {
+    Error_Handler();
+  }
 }
 
 /* USER CODE BEGIN 4 */
-float prev_pitch[6] = { 0, 0, 0, 0, 0, 0 };
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	__disable_irq();
 	if (htim->Instance == TIM2) {
+#ifdef TESTMUSIC
 		precomputeMix();
+#endif
 	} else if (htim->Instance == TIM3) {
+#ifdef USEIMU
 		updateIMUs();
+#endif
 	}
 	__enable_irq();
 }
@@ -428,16 +449,17 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 /* USER CODE END 4 */
 
 /**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
-void Error_Handler(void) {
-	/* USER CODE BEGIN Error_Handler_Debug */
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
 	__disable_irq();
 	while (1) {
 	}
-	/* USER CODE END Error_Handler_Debug */
+  /* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT
