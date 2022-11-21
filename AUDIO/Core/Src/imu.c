@@ -117,10 +117,10 @@ void updateIMUs() {
 //		}
 //		break;
 //	}
-
-	if (imuLeft.pitch_acc < -7) imuLeft.accelFlag = 1;
+//
+//	if (imuLeft.pitch_acc < -7) imuLeft.accelFlag = 1;
 //	if (imuLeft.pitch_acc > 7) imuLeft.accelFlag = 1;
+	if (imuLeft.acc[2] < -15) imuLeft.accelFlag = 1;
 	else imuLeft.accelFlag = 0;
-//	if (imuLeft.acc[2] < -15) imuLeft.accelFlag = 1;
 //	if (imuLeft.acc[2] > 30) imuLeft.accelFlag = 0;
 }
