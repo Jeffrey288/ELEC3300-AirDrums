@@ -22,21 +22,39 @@ void _drum4Event(ButtonEvent evt) { if (evt == BTN_PRESSED) drumPlay(HIGH_TOM); 
 void _drumIMULeftEvent(ButtonEvent evt) {
 	if (evt == BTN_PRESSED) {
 		hits++;
-		drumPlay(hits % DRUM_NUM);
+		if (imuLeft.yaw < -100) drumPlay(hits % DRUM_NUM);
+		else if (imuLeft.yaw < 0) drumPlay(hits % DRUM_NUM);
+		else if (imuLeft.yaw < 100) drumPlay(hits % DRUM_NUM);
+		else drumPlay(hits % DRUM_NUM);
 	}
 }
+
+void _drumIMURightEvent(ButtonEvent evt) {
+	if (evt == BTN_PRESSED) {
+		hits++;
+		if (imuRight.yaw < -100) drumPlay(hits % DRUM_NUM);
+		else if (imuRight.yaw < 0) drumPlay(hits % DRUM_NUM);
+		else if (imuRight.yaw < 100) drumPlay(hits % DRUM_NUM);
+		else drumPlay(hits % DRUM_NUM);
+	}
+}
+
 int _drumIMULeftGet(Button *btn) {
-//	if (btn->state == BTN_UP) {
-//		return (imuLeft.pitch_acc > 40);
 	if (imuLeft.accelFlag) {
 		imuLeft.accelFlag = 0;
 		return 1;
 	} else {
 		return 0;
 	}
-//	} else {
-//		return (imuLeft.pitch_acc > 15);
-//	}
+}
+
+int _drumIMURightGet(Button *btn) {
+	if (imuRight.accelFlag) {
+		imuRight.accelFlag = 0;
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 /**
@@ -81,6 +99,13 @@ void initButtons() {
 	addButton((Button) {
 		.eventListener = _drumIMULeftEvent,
 		.stateRetriever = _drumIMULeftGet,
+		.last_pressed = 0,
+		.debounce_time = 70, // > 25.3 https://www.guinnessworldrecords.com/news/2022/1/worlds-fastest-drummer-11-year-old-achieves-2-370-bpm-688980#:~:text=11%2Dyear%2Dold%20Pritish%20A%20R,that's%2039.5%20beats%20per%20second.
+		.state = BTN_UP,
+	});
+	addButton((Button) {
+		.eventListener = _drumIMURightEvent,
+		.stateRetriever = _drumIMURightGet,
 		.last_pressed = 0,
 		.debounce_time = 70, // > 25.3 https://www.guinnessworldrecords.com/news/2022/1/worlds-fastest-drummer-11-year-old-achieves-2-370-bpm-688980#:~:text=11%2Dyear%2Dold%20Pritish%20A%20R,that's%2039.5%20beats%20per%20second.
 		.state = BTN_UP,

@@ -41,6 +41,7 @@ typedef struct {
 	};
 	float prev_pitch[7];
 	float pitch_acc;
+	int pitch_multiplier;
 
 // some flags for buttons
 	int accelFlag;
@@ -75,3 +76,8 @@ static void imu_calibrateGyro(imuStruct* p) {
     // Average the saved data points to find the gyroscope offset
     for (int j = 0; j < 3; j++) p->gyro_offset[j] = (float) sum[j] / numCalPoints;
 }
+
+void updateIMUs();
+void updateIMU(imuStruct*);
+void initIMUStructs();
+void initIMUStruct(imuStruct*);
