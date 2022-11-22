@@ -29,6 +29,7 @@ extern MusicState musicState;
 extern char musicFilenames[20][15];
 extern uint16_t musicFileNum;
 void addMusic(char* fileName);
+
 int setMusic(char* fileName);
 int playMusic();
 int pauseMusic();

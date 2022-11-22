@@ -39,6 +39,7 @@
 #include "imu.h"
 #include "buttons.h"
 #include "kalman.h"
+#include "string.h"
 
 // GUI includes
 #include <stdio.h>
@@ -76,25 +77,29 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-//#define TESTMUSIC
+#define USEMUSIC
+#define TESTMUSIC
 #define IVANCODE
 //#define USEIMU
+
+#ifdef TESTMUSIC
+	#define USEMUSIC
+#endif
 
 void error_handler(int res, const char *msg) {
 	char buff[100];
 	sprintf(buff, "%d %s", res, msg);
 	LCD_DrawString(40, 0, buff);
-	HAL_Delay(1000000);
+	  HAL_Delay(1000000);
 }
 void display_success(int num, const char *msg) {
 	char buff[100];
 	sprintf(buff, "%d %s", num, msg);
 	LCD_DrawString(40, 0, buff);
-//	  HAL_Delay(1000000);
 }
 
 char buff[31];
-extern int numActiveDrums;
+//extern int numActiveDrums;
 
 
 /* USER CODE END 0 */
@@ -156,23 +161,40 @@ int main(void)
 //	MPU9250_Init();
 #endif
 
-#ifdef TESTMUSIC
+#ifdef USEMUSIC
 	FRESULT res;
 	FATFS FatFs;
+	FATFS BlankFs;
 	DIR dir;
 	FILINFO fno;
 
 	// MOUNT THE SD CARD
 	HAL_Delay(20);
-	res = f_mount(&FatFs, "", 1);
-	if (res != FR_OK)
-		error_handler(res, "No sd card found!");
-	HAL_Delay(20);
+	uint32_t sd_card_mount_led_last_tick = HAL_GetTick();
+	while (1) {
+		if (HAL_GetTick() - sd_card_mount_led_last_tick > 100) {
+			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
+			sd_card_mount_led_last_tick = HAL_GetTick();
+		}
+		res = f_mount(&FatFs, "", 1);
+		if (res != FR_OK) {
+			sprintf(buff, "%d No sd card found!", res);
+			LCD_DrawString(40, 0, buff);
+			continue;
+		}
+		HAL_Delay(20);
 
-	res = f_opendir(&dir, "0:");
-	if (res != FR_OK)
-		error_handler(res, "Cannot open drive");
-	HAL_Delay(20);
+		res = f_opendir(&dir, "0:");
+		if (res != FR_OK) {
+			sprintf(buff, "%d Cannot open drive!", res);
+			LCD_DrawString(40, 0, buff);
+			continue;
+		}
+		HAL_Delay(20);
+
+		break;
+	}
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET);
 
 	// LIST ALL OF THE AVAILABLE FILES
 	while (1) {
@@ -189,10 +211,9 @@ int main(void)
 	for (int i = 0; i < musicFileNum; i++) {
 		LCD_DrawString(0, 20 + 20 * i, musicFilenames[i]);
 	}
-
 #endif
 
-#ifdef TESTMUSIC
+#ifdef USEMUSIC
 	audioChannelInit();
 #endif
 
@@ -208,8 +229,8 @@ int main(void)
 #endif
 
 #ifdef IVANCODE
-	startlogo(); // displays logo screen
-	while (StartProcess())
+	StartLogo(); // displays logo screen
+	while (StartProcess()) // waiting for the first click
 		; // Wait starting signal
 	LCD_Clear(0, 0, 320, 240, WHITE);
 	LCD_SetBackColor(WHITE);
@@ -219,7 +240,6 @@ int main(void)
 //	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
 	MainMenuInterface();
-
 #endif
 
   /* USER CODE END 2 */
@@ -242,19 +262,15 @@ int main(void)
 
 #ifdef IVANCODE
 		if (XPT2046_TouchDetect() == TOUCH_PRESSED) {
-			XPT2046_Touch(posinfo);
-			InterfaceSelector(posinfo[0], posinfo[1], GUISTACK[0]);
-			if (currentinterface != GUISTACK[0]) {
-				CurrentInterface(GUISTACK[0]);
+			XPT2046_Touch(posinfo); // Get TouchScreen position
+			InterfaceSelector(posinfo[0], posinfo[1], GUISTACK[0]); // process the touchscreen position
+			if (currentinterface != GUISTACK[0]) { // execute only when the interface is changed
+				DisplayInterface(GUISTACK[0]);
 				currentinterface = GUISTACK[0];
 			}
-
-			//printcurrentstack();
-			//printtouchposition(posinfo[0],posinfo[1]);
-			//MusicPlayerControl(posinfo[0],posinfo[1]);
-			//MusicPlayerInterface(posinfo[0]);
-
 		}
+
+		InterfaceHandler();
 #endif
 
 #ifdef USEIMU
@@ -371,8 +387,8 @@ int main(void)
 //			LCD_DrawString(0, 120, "PC13 up  ");
 		}
 
-		sprintf(buff, "%d", numActiveDrums);
-		LCD_DrawString(200, 80, buff);
+//		sprintf(buff, "%d", numActiveDrums);
+//		LCD_DrawString(200, 80, buff);
 		drumUpdate();
 		musicUpdate();
 #endif

@@ -2,6 +2,7 @@
 #define __FILE_BUFF_H
 
 #include "fatfs.h"
+#include <string.h>
 #include "wav.h"
 #define BUFF_SIZE (1000) // max 1000
 #define BUFF_NUM (3)

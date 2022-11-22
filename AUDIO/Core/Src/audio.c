@@ -69,8 +69,11 @@ int seekMusic(float pos) {
 }
 
 float getMusicProgress() {
-	if (sampleFile.totalSampleCount == 0) return -1;
-	return ((float) sampleFile.sampleCount / sampleFile.totalSampleCount);
+	if (sampleFile.totalSampleCount == 0) return 0;
+	float res = (float) sampleFile.sampleCount / sampleFile.totalSampleCount;
+	if (res > 1) res = 1;
+	if (res < 0) res = 0;
+	return res;
 }
 
 void musicUpdate() {
@@ -117,13 +120,13 @@ void drumUpdate() {
 	DRUMS temp[DRUM_NUM]; int temp_count = 0; // the drums that need to be deactivated
 	for (int i = 0; i < numActiveDrums; i++) {
 		readFile(&drumFileStructs[activeDrums[i]]);
-//		if (!drumFileStructs[activeDrums[i]].inUse) {
-//			temp[temp_count++] = activeDrums[i];
-//		}
+		if (!drumFileStructs[activeDrums[i]].inUse) {
+			temp[temp_count++] = activeDrums[i];
+		}
 	}
-//	for (int i = 0; i < temp_count; i++) {
-//		deactivateDrum(temp[i]);
-//	}
+	for (int i = 0; i < temp_count; i++) {
+		deactivateDrum(temp[i]);
+	}
 }
 
 // ------------ AUDIO PLAYBACK RELATED -----------------
@@ -166,7 +169,7 @@ inline void precomputeMix() {
 		if (musicState == MUSIC_PLAYING)
 			sample_sum += readSample(&sampleFile) / 4;
 		drumMix(sample_sum);
-		*(audioLeft.curr++) = (sample_sum + 32768);
+		*(audioLeft.curr++) = (-sample_sum + 32768);
 	}
 	audioLeft.toWrite++;
 	if (audioLeft.toWrite >= AUDIO_BLOCKS) {

@@ -875,7 +875,7 @@ void VolumeControl(int posX, int posY, int percentageindex) {
 	}
 }
 
-void startlogo() {
+void StartLogo() {
 
 	imagebuilder(50, 50, 192, 170, GroupPic);
 }
