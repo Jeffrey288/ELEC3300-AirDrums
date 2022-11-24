@@ -39,12 +39,10 @@ static int currentfile = -1;
 
 // stores whether recording is on
 typedef enum {
-	RecordingOff,
-	RecordingOn,
+	RecordingOff, RecordingOn,
 } RecordingState;
 
 static RecordingState recordingstatus = RecordingOff;
-
 
 static int position = 0;
 static short stopstatus = 0;
@@ -53,6 +51,7 @@ static int posinfo[2] = { 0, 0 };
 
 static short PLAYPAUSESTATUS = 0;
 static short starttimeline = 0;
+static float PrevTimelineData = -1;
 static int MusicSpectrumArray[30] = { 0 };
 
 static int RGB = 0x0000;
@@ -60,9 +59,10 @@ static short upper = 0x0010;
 static short musicplayeron = 0;
 static int status = 1;
 static int timer = 0;
-static short drumpractice[60] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 };
+static short drumpractice[60] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+		0, 0 };
 static short filereturn = 0;
 
 // GUI Stack Functions
@@ -117,8 +117,8 @@ static void printtouchposition(int xpos, int ypos) {
 
 // Touchscreen helper funciton
 
-static short boundarychecker(int inputx, int inputy, int lowlimitx, int highlimitx,
-		int lowlimity, int highlimity) {
+static short boundarychecker(int inputx, int inputy, int lowlimitx,
+		int highlimitx, int lowlimity, int highlimity) {
 	if ((inputx > lowlimitx) && (inputx < highlimitx)) {
 		if ((inputy > lowlimity) && (inputy < highlimity)) {
 
@@ -160,7 +160,8 @@ static void VolumeControlInterface() {
 	}
 }
 
-static void SongSelectionInterface(int numoffiles, char filename[][15], int filetype) {
+static void SongSelectionInterface(int numoffiles, char filename[][15],
+		int filetype) {
 	//int rows =  1; //numoffiles %3;
 	LCD_Clear(0, 0, 320, 240, WHITE);
 	int counter = 0;
@@ -169,7 +170,8 @@ static void SongSelectionInterface(int numoffiles, char filename[][15], int file
 			imagebuilder(20 + 100 * i, 20 + 110 * j, 72, 85, WAV);
 //			char tempbuff[9];
 //			memcpy(tempbuff, filename[counter], 8);
-			LCD_DrawString(25 + 100 * i, 110 + 110 * j, musicFilenames[counter]);
+			LCD_DrawString(25 + 100 * i, 110 + 110 * j,
+					musicFilenames[counter]);
 			counter++;
 		}
 	}
@@ -211,6 +213,21 @@ static void MusicTimeline(float pos) {
 	//End: 300
 	uint16_t xpos = 30 + (300 - 30) * pos;
 
+	if (PrevTimelineData != -1) {
+		uint16_t prexpos = 30 + (300 - 30) * PrevTimelineData;
+		LCD_Clear(prexpos - 10, 190, 20, 40, WHITE);
+
+		if (xpos > prexpos)
+			LCD_SetTextColor(BLACK);
+		else if (xpos < prexpos)
+			LCD_SetTextColor(0xF700);
+
+		ILI9341_DrawRectangle(prexpos - 10, 200, xpos - 40, 5, WHITE);
+
+	}
+
+	PrevTimelineData = pos;
+
 	if ((xpos > 30) && (xpos < 300)) {
 		if (starttimeline == 0) {
 			starttimeline = 1;
@@ -234,8 +251,9 @@ static void MusicTimeline(float pos) {
 			LCD_SetTextColor(GREEN);
 			ILI9341_DrawCircle(xpos, 200, 10, WHITE);
 
-			HAL_Delay(100);
-		} else {
+		}
+
+		else {
 			LCD_Clear(xpos - 18, 180, 10, 40, WHITE);
 			if ((xpos - 40) > 0) {
 				if (recordingstatus == 1) {
@@ -245,12 +263,6 @@ static void MusicTimeline(float pos) {
 				}
 				ILI9341_DrawRectangle(xpos - 18, 200, 10, 5, WHITE);
 			}
-			//			  if((300-xpos-10)>0)
-			//			  		  {
-			//			  		  LCD_SetTextColor(0xF700);
-			//			  		  ILI9341_DrawRectangle(xpos+10,200,300-xpos-10,5,WHITE);
-			//			  		  }
-			//
 			LCD_SetTextColor(GREEN);
 			ILI9341_DrawCircle(xpos, 200, 10, WHITE);
 
@@ -281,40 +293,33 @@ static void MusicSpectrum(int newpulse) {
 
 }
 
-
-static int adcstimulate() {
-	HAL_ADC_Start(&hadc1);
-	HAL_ADC_PollForConversion(&hadc1, 1000);
-	return (HAL_ADC_GetValue(&hadc1));
-}
-
 static void MusicPlayerInterfaceSelector(int xpos, int ypos, short mode) {
 
 	if (boundarychecker(xpos, ypos, 20, 80, 80, 140)) { // if the play/paused button is pressed
 		switch (musicState) {
-			case MUSIC_UNINITED: // when the song is paused
-			case MUSIC_PAUSED: // clicking the play button will load/play the song
+		case MUSIC_UNINITED: // when the song is paused
+		case MUSIC_PAUSED: // clicking the play button will load/play the song
 
-				// load and play the song
-				if (musicState == MUSIC_UNINITED)
-					setMusic(musicFilenames[currentfile]);
-				playMusic(); // this will automatically update the state to MUSIC_PLAYING
+			// load and play the song
+			if (musicState == MUSIC_UNINITED)
+				setMusic(musicFilenames[currentfile]);
+			playMusic(); // this will automatically update the state to MUSIC_PLAYING
 
-				// change the button to the play button
-				LCD_Clear(20, 80, 60, 60, WHITE);
-				imagebuilder(20, 80, 56, 57, PauseButton);
+			// change the button to the play button
+			LCD_Clear(20, 80, 60, 60, WHITE);
+			imagebuilder(20, 80, 56, 57, PauseButton);
 
-				break;
-			case MUSIC_PLAYING: // when the song is playing
-				 // and the pause button is pressed
+			break;
+		case MUSIC_PLAYING: // when the song is playing
+			// and the pause button is pressed
 
-				// the music is paused
-				pauseMusic();
+			// the music is paused
+			pauseMusic();
 
-				LCD_Clear(20, 80, 60, 60, WHITE);
-				imagebuilder(20, 80, 57, 57, PlayButton); // draw the play button
+			LCD_Clear(20, 80, 60, 60, WHITE);
+			imagebuilder(20, 80, 57, 57, PlayButton); // draw the play button
 
-				break;
+			break;
 		}
 	} else if (boundarychecker(xpos, ypos, 80, 140, 80, 140)) { // if the stop button is pressed
 		// stop the music, unload the file
@@ -325,8 +330,17 @@ static void MusicPlayerInterfaceSelector(int xpos, int ypos, short mode) {
 		imagebuilder(20, 80, 57, 57, PlayButton); // draw the play button
 	} else if (boundarychecker(xpos, ypos, 140, 200, 80, 140)) { // if the recording button is pressed
 		// to be implemented
-		if (recordingstatus == RecordingOn) recordingstatus = RecordingOff;
-		else /* recordingstatus == RecordingOff */	recordingstatus = RecordingOn;
+		if (recordingstatus == RecordingOn)
+			recordingstatus = RecordingOff;
+		else
+			/* recordingstatus == RecordingOff */recordingstatus = RecordingOn;
+	}
+
+	else if (boundarychecker(xpos, ypos, 30, 300, 180, 200)) {// Music Drag Timeline
+		float RelativeMusicPosition = (xpos - 30) / 270;
+		seekMusic(RelativeMusicPosition);
+		musicUpdate();
+
 	}
 
 }
@@ -347,7 +361,6 @@ static void MainMenuInterface() {
 	imagebuilder(215, 20, 99, 98, Metronome);
 	LCD_DrawString(230, 120, "Metronome");
 }
-
 
 static void metronome(int BPM) {
 //	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
@@ -421,7 +434,6 @@ static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
 
 	}
 }
-
 
 // Displays the interface, will only run once whenever the touchscreen is pressed
 static void DisplayInterface(int currentinterface) {
