@@ -22,10 +22,10 @@ void _drum4Event(ButtonEvent evt) { if (evt == BTN_PRESSED) drumPlay(HIGH_TOM); 
 void _drumIMULeftEvent(ButtonEvent evt) {
 	if (evt == BTN_PRESSED) {
 		hits++;
-		if (imuLeft.yaw < -100) drumPlay(hits % DRUM_NUM);
-		else if (imuLeft.yaw < 0) drumPlay(hits % DRUM_NUM);
-		else if (imuLeft.yaw < 100) drumPlay(hits % DRUM_NUM);
-		else drumPlay(hits % DRUM_NUM);
+		if (imuLeft.yaw < -60) drumPlay(0);
+		else if (imuLeft.yaw < 0) drumPlay(1);
+		else if (imuLeft.yaw < 60) drumPlay(2);
+		else drumPlay(3);
 	}
 }
 

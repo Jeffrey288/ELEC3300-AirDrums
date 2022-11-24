@@ -51,7 +51,6 @@ static int posinfo[2] = { 0, 0 };
 
 static short PLAYPAUSESTATUS = 0;
 static short starttimeline = 0;
-static float PrevTimelineData = -1;
 static int MusicSpectrumArray[30] = { 0 };
 
 static int RGB = 0x0000;
@@ -117,17 +116,17 @@ static void printtouchposition(int xpos, int ypos) {
 
 // Touchscreen helper funciton
 
-static short boundarychecker(int inputx, int inputy, int lowlimitx,
+static inline short boundarychecker(int inputx, int inputy, int lowlimitx,
 		int highlimitx, int lowlimity, int highlimity) {
-	if ((inputx > lowlimitx) && (inputx < highlimitx)) {
-		if ((inputy > lowlimity) && (inputy < highlimity)) {
-
-			//LCD_DrawString(40,20,"BoundaryTrue");
-			return 1;
-		}
-	}
-	//LCD_DrawString(40,20,"BoundaryFalse");
-	return 0;
+	return (inputx > lowlimitx) && (inputx < highlimitx) && (inputy > lowlimity) && (inputy < highlimity);
+//	if ((inputx > lowlimitx) && (inputx < highlimitx)) {
+//		if ((inputy > lowlimity) && (inputy < highlimity)) {
+//			//LCD_DrawString(40,20,"BoundaryTrue");
+//			return 1;
+//		}
+//	}
+//	//LCD_DrawString(40,20,"BoundaryFalse");
+//	return 0;
 
 }
 
@@ -208,69 +207,6 @@ static void FileFunctionMenu(int index) {
 	//LCD_DrawString(25+100*i,100+110*j,filename[counter] );
 }
 
-static void MusicTimeline(float pos) {
-	//Start:30
-	//End: 300
-	uint16_t xpos = 30 + (300 - 30) * pos;
-
-	if (PrevTimelineData != -1) {
-		uint16_t prexpos = 30 + (300 - 30) * PrevTimelineData;
-		LCD_Clear(prexpos - 10, 190, 20, 40, WHITE);
-
-		if (xpos > prexpos)
-			LCD_SetTextColor(BLACK);
-		else if (xpos < prexpos)
-			LCD_SetTextColor(0xF700);
-
-		ILI9341_DrawRectangle(prexpos - 10, 200, xpos - 40, 5, WHITE);
-
-	}
-
-	PrevTimelineData = pos;
-
-	if ((xpos > 30) && (xpos < 300)) {
-		if (starttimeline == 0) {
-			starttimeline = 1;
-			LCD_Clear(0, 190, 320, 40, WHITE);
-			//Front
-			if ((xpos - 40) > 0) {
-				if (recordingstatus == 1) {
-					LCD_SetTextColor(RED);
-				} else {
-					LCD_SetTextColor(BLACK);
-				}
-				ILI9341_DrawRectangle(30, 200, xpos - 40, 5, WHITE);
-			}
-			//Back
-			if ((300 - xpos - 10) > 0) {
-				LCD_SetTextColor(0xF700);
-				ILI9341_DrawRectangle(xpos + 10, 200, 300 - xpos - 10, 5,
-				WHITE);
-			}
-
-			LCD_SetTextColor(GREEN);
-			ILI9341_DrawCircle(xpos, 200, 10, WHITE);
-
-		}
-
-		else {
-			LCD_Clear(xpos - 18, 180, 10, 40, WHITE);
-			if ((xpos - 40) > 0) {
-				if (recordingstatus == 1) {
-					LCD_SetTextColor(RED);
-				} else {
-					LCD_SetTextColor(BLACK);
-				}
-				ILI9341_DrawRectangle(xpos - 18, 200, 10, 5, WHITE);
-			}
-			LCD_SetTextColor(GREEN);
-			ILI9341_DrawCircle(xpos, 200, 10, WHITE);
-
-		}
-	}
-
-}
-
 static void MusicSpectrum(int newpulse) {
 
 	for (int i = 30; i > 0; i--) {
@@ -293,8 +229,60 @@ static void MusicSpectrum(int newpulse) {
 
 }
 
-static void MusicPlayerInterfaceSelector(int xpos, int ypos, short mode) {
+#define LCD_DrawCircle(x, y, rad, color) \
+	LCD_SetTextColor(color); \
+	ILI9341_DrawCircle(x, y, rad, 1);
+//	LCD_DrawEllipse((x) - (rad), (y) - (rad), rad, rad, color);
+#define LCD_DrawRectangle(x, y, w, h, color) \
+	LCD_Clear(x, y, w, h, color);
+uint16_t max(uint16_t a, uint16_t b) {return (a > b) ? a : b;}
 
+static int prev_xpos = 0;
+static void MusicTimeline(float pos, uint8_t drawWhole) {
+	// pos: position of the current cursor
+	// drawWhole: 1 if redraw the whole timeline, 0 if not
+
+	// Start: 30, End: 300
+	uint16_t xpos = 30 + (300 - 30) * pos;
+//	char buff[20];
+//	sprintf(buff, "diu %3d", xpos);
+//	LCD_DrawString(0, 0, buff);
+
+	if (drawWhole) {
+
+		// Draw the playbar
+		LCD_DrawRectangle(30, 200, max((xpos - 30) - 10, 0), 5, (recordingstatus == 1) ? RED : BLACK); // BEFORE THE THING
+		LCD_DrawRectangle(xpos + 10, 200, max((300 - xpos) - 10, 0) , 5, 0xF700); // AFTER THE THING
+
+		// Draw the bob
+		LCD_DrawCircle(xpos, 200, 10, GREEN);
+
+	} else {
+
+		// Draw the playbar
+		if (prev_xpos < xpos) {
+			LCD_DrawRectangle(prev_xpos - 10, 190, (xpos - prev_xpos), 40, WHITE);
+			LCD_DrawRectangle(prev_xpos - 10, 200, (xpos - prev_xpos), 5, (recordingstatus == 1) ? RED : BLACK);
+		} else {
+			LCD_DrawRectangle(xpos + 10, 190, (prev_xpos - xpos + 1), 40, WHITE);
+			LCD_DrawRectangle(xpos + 10, 200, (prev_xpos - xpos + 1), 5, 0xF700);
+		}
+
+		// Draw the bob
+		LCD_DrawCircle(xpos, 200, 10, GREEN);
+
+	}
+
+	prev_xpos = xpos;
+
+}
+
+static void MusicPlayerInterfaceSelector(int xpos, int ypos, short mode) {
+//	char buff[20];
+//	sprintf(buff, "diu %3d %3d", xpos, ypos);
+//	LCD_DrawString(100, 20, buff);
+//	sprintf(buff, "diu %.3f", getMusicProgress());
+//	LCD_DrawString(100, 60, buff);
 	if (boundarychecker(xpos, ypos, 20, 80, 80, 140)) { // if the play/paused button is pressed
 		switch (musicState) {
 		case MUSIC_UNINITED: // when the song is paused
@@ -330,17 +318,14 @@ static void MusicPlayerInterfaceSelector(int xpos, int ypos, short mode) {
 		imagebuilder(20, 80, 57, 57, PlayButton); // draw the play button
 	} else if (boundarychecker(xpos, ypos, 140, 200, 80, 140)) { // if the recording button is pressed
 		// to be implemented
-		if (recordingstatus == RecordingOn)
-			recordingstatus = RecordingOff;
-		else
-			/* recordingstatus == RecordingOff */recordingstatus = RecordingOn;
-	}
-
-	else if (boundarychecker(xpos, ypos, 30, 300, 180, 200)) {// Music Drag Timeline
-		float RelativeMusicPosition = (xpos - 30) / 270;
+		if (recordingstatus == RecordingOn) recordingstatus = RecordingOff;
+		else /* recordingstatus == RecordingOff */recordingstatus = RecordingOn;
+	} else if (boundarychecker(xpos, ypos, 30, 300, 180, 200)) {// Music Drag Timeline
+		float RelativeMusicPosition = (xpos - 30) / 270.0;
+//		sprintf(buff, "diu %.3f", RelativeMusicPosition);
+//		LCD_DrawString(100, 40, buff);
 		seekMusic(RelativeMusicPosition);
 		musicUpdate();
-
 	}
 
 }
@@ -349,8 +334,8 @@ static void MusicPlayerInterface(short mode) { // Draws the interface for the mu
 	imagebuilder(20, 80, 57, 57, PlayButton);
 	imagebuilder(80, 80, 57, 56, StopButton);
 	imagebuilder(140, 80, 56, 57, Recording);
-	LCD_DrawString(25, 40, filenamearray[currentfile]);
-	MusicTimeline(0);
+	LCD_DrawString(25, 40, musicFilenames[currentfile]);
+	MusicTimeline(0, 1);
 }
 
 static void MainMenuInterface() {
@@ -388,7 +373,6 @@ static void DrumPratice() {
 			}
 
 		}
-
 		stepcounter++;
 	}
 
@@ -400,10 +384,10 @@ static void DrumPratice() {
 
 // Whenever touchscreen is pressed, this function is run
 static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
-	if ((posinfo[0] > 180) && (posinfo[1] > 260) // this can be replaced by a physical button
-			&& (!GUIEMPTYSTACK(GUISTACK))) {
-		GUIBACKWARD(GUISTACK);
-	} else {
+//	if ((xpos > 260) && (ypos > 200) // this can be replaced by a physical button
+//			&& (!GUIEMPTYSTACK(GUISTACK))) {
+//		GUIBACKWARD(GUISTACK);
+//	} else {
 		if (currentinterface == GUI_MainMenu) { // in the main menu, choose the different modes
 			if (boundarychecker(xpos, ypos, 0, 110, 0, 120)) { // Mainmenu --> MusicPlayer
 				GUIFORWARD(GUI_SongSelection, GUISTACK);
@@ -432,7 +416,7 @@ static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
 		//			  }
 		//		  }
 
-	}
+//	}
 }
 
 // Displays the interface, will only run once whenever the touchscreen is pressed
@@ -449,7 +433,6 @@ static void DisplayInterface(int currentinterface) {
 		imagebuilder(260, 190, 31, 28, Return);
 		break;
 	case GUI_SongPlayer: // MusicPlayer-DrumPlay
-		currentfile = FileSelector(posinfo[0], posinfo[1], 0, 4);
 		LCD_Clear(0, 0, 320, 240, WHITE);
 		MusicPlayerInterface(0);
 		//	 imagebuilder(260, 2100, 31, 28, Return);
@@ -491,7 +474,7 @@ static void InterfaceHandler() {
 		if (HAL_GetTick() - gui_last_tick > 1000) {
 			gui_last_tick = HAL_GetTick();
 			// update the timeline every second
-			MusicTimeline(getMusicProgress());
+			MusicTimeline(getMusicProgress(), 0);
 		}
 
 		// note: no need to call musicUpdate or drumUpdate here

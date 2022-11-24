@@ -1,6 +1,7 @@
 #ifndef __WAV_H__
 #define __WAV_H__
 
+#include "stm32f1xx_hal.h"
 // Source: https://github.com/Nunocky/Nucleo_L476RG_WavPlay
 
 //#pragma pack(1)
@@ -24,4 +25,24 @@ typedef WAV_HEADER WavHeader;
 
 #define WAV_HEADER_SIZE sizeof(WavHeader)
 
+static const WavHeader emptyWavHeader = (WavHeader) {
+  .riff = {'R', 'I', 'F', 'F'},
+  .fileSize = 0,
+  .fileTypeHeader = {'W', 'A', 'V', 'E'},
+  .formatChunkMarker = {'f', 'm', 't', 32},
+  .formatChunkLength = 16,
+  .vfmt = 1,
+  .channels = 1,
+  .sampleFreq = 22050,
+  .sampleBytesPerSecond = 44100,
+  .blkSize = 2,
+  .bitsPerSample = 16,
+  .dataChunkHeader = {'d', 'a', 't', 'a'},
+  .dataChunkLength = 0
+};
+// 9948302 - 9948160
+// 12844174 - 12844032
+// = 142
+
 #endif
+

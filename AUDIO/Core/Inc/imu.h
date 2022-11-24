@@ -1,6 +1,7 @@
 #include "MPU9250_Config.h"
 #include "MPU9250.h"
 #include "madgwickFilter.h"
+#include "kalman.h"
 
 typedef enum {
 	IMU_IDLE,
@@ -49,6 +50,9 @@ typedef struct {
 	imuState state;
 	uint32_t upCount;
 	uint32_t downCount;
+
+	Kalman gyro_filters[3];
+	Kalman acc_filters[3];
 } imuStruct;
 
 extern imuStruct *imuStructs[2];

@@ -82,5 +82,6 @@ extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim4;
 extern inline void audioChannelInit();
 extern inline void precomputeMix();
+extern inline void tempStopDMA();
 
 #endif // __AUDIO_H

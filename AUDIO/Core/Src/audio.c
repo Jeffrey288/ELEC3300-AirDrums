@@ -60,6 +60,7 @@ int stopMusic() {
 }
 
 int seekMusic(float pos) {
+	tempStopDMA();
 	if (pos < 0 || pos >= 1) return -1;
 	sampleFile.sampleCount = pos * sampleFile.totalSampleCount;
 	return f_lseek(&(sampleFile.file), sizeof(WavHeader) + sampleFile.sampleCount * 2);
@@ -110,6 +111,9 @@ int audioInit() {
 // -------------- DRUM PLAY -------------------
 
 void drumPlay(DRUMS index) {
+	char buff[30];
+	sprintf(buff, "drum: %d", index);
+	LCD_DrawString(0, 160, buff);
 	openFile(&drumFileStructs[index]);
 //	f_lseek(&(drumFileStructs[index].file), WAV_HEADER_SIZE);
 	initFileStruct(&drumFileStructs[index]);
@@ -167,7 +171,7 @@ inline void precomputeMix() {
 	for (int i = 0; i < AUDIO_PRECOMP; i++) {
 		sample_sum = 0;
 		if (musicState == MUSIC_PLAYING)
-			sample_sum += readSample(&sampleFile) / 4;
+			sample_sum += readSample(&sampleFile);
 		drumMix(sample_sum);
 		*(audioLeft.curr++) = (-sample_sum + 32768);
 	}
@@ -186,4 +190,13 @@ inline void precomputeMix() {
 //	HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)dac_buff.left, AUDIO_PRECOMP, DAC_ALIGN_12B_L);
 //		audioLeft.onFlag = 1;
 //	}
+}
+
+inline void tempStopDMA() {
+	__disable_irq();
+	audioLeft.curr = audioLeft.first;
+	audioLeft.toWrite = 1;
+	playFlag = 0;
+	HAL_DAC_Stop_DMA(&hdac, audioLeft.channel);
+	__enable_irq();
 }
