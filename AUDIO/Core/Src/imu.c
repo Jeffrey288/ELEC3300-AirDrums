@@ -25,8 +25,6 @@ void initIMUStruct(imuStruct *imu) {
 	if (imu->acc[3] < 0) imu->pitch_multiplier = 1;
 	else imu->pitch_multiplier = -1;
 
-
-
 }
 
 void initIMUStructs() {

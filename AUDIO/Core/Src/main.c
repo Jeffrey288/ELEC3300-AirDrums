@@ -217,6 +217,29 @@ int main(void) {
 
 	initButtons();
 
+#ifdef IVANCODE
+	int _touchScreenGet() {
+		return (XPT2046_TouchDetect() == TOUCH_PRESSED);
+	}
+	void _touchScreenEvent(ButtonEvent evt) {
+		if (evt == BTN_PRESSED) {
+			XPT2046_Touch(posinfo); // Get TouchScreen position
+			InterfaceSelector(posinfo[0], posinfo[1], GUISTACK[0]); // process the touchscreen position
+			if (currentinterface != GUISTACK[0]) { // execute only when the interface is changed
+				DisplayInterface(GUISTACK[0]);
+				currentinterface = GUISTACK[0];
+			}
+		}
+	}
+	addButton((Button) {
+		.eventListener = _touchScreenEvent,
+		.stateRetriever = _touchScreenGet,
+		.last_pressed = 0,
+		.debounce_time = 10,
+		.state = BTN_UP,
+	});
+#endif
+
 #ifdef USEIMU
 //	imu_calibrateGyro(&imuLeft);
 //	imu_calibrateGyro(&imuRight);
@@ -259,18 +282,6 @@ int main(void) {
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 			last_tick = HAL_GetTick();
 		}
-
-#ifdef IVANCODE
-		if (XPT2046_TouchDetect() == TOUCH_PRESSED) {
-			XPT2046_Touch(posinfo); // Get TouchScreen position
-			InterfaceSelector(posinfo[0], posinfo[1], GUISTACK[0]); // process the touchscreen position
-			if (currentinterface != GUISTACK[0]) { // execute only when the interface is changed
-				DisplayInterface(GUISTACK[0]);
-				currentinterface = GUISTACK[0];
-			}
-		}
-		InterfaceHandler();
-#endif
 
 #ifdef USEIMU
 
@@ -410,6 +421,7 @@ int main(void) {
 #endif
 
 		updateButtons();
+		InterfaceHandler();
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
