@@ -40,6 +40,7 @@
 #include "buttons.h"
 #include "kalman.h"
 #include "string.h"
+#include "recording.h"
 
 // GUI includes
 #include <stdio.h>
@@ -77,9 +78,11 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
 #define USEMUSIC
 #define TESTMUSIC
 #define IVANCODE
+
 #define USEIMU
 
 #ifdef TESTMUSIC
@@ -100,7 +103,7 @@ void display_success(int num, const char *msg) {
 
 char buff[31];
 int count = 0;
-FIL recordingFile;
+int show_imu_data = 0;
 //extern int numActiveDrums;
 
 /* USER CODE END 0 */
@@ -198,14 +201,6 @@ int main(void)
 	}
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET);
 
-
-//	int i = 1;
-//	do {
-//		sprintf(buff, "Rec1.wav", i);
-//		f_findfirst(&dir, fno, "", buff);
-//	} while (fno.fname[0] != 0);
-
-
 	// LIST ALL OF THE AVAILABLE FILES
 	while (1) {
 		res = f_readdir(&dir, &fno);
@@ -213,7 +208,7 @@ int main(void)
 			break;
 		int len = strlen(fno.fname);
 		if (
-//				drumMatch(fno.fname) == -1 &&
+				drumMatch(fno.fname) == -1 &&
 				(fno.fname[len - 1] == 'V' || fno.fname[len - 1] == 'v')
 		) {
 			addMusic(fno.fname);
@@ -231,35 +226,19 @@ int main(void)
 #endif
 
 	initButtons();
-
-#ifdef IVANCODE
-	int _touchScreenGet() {
-		return (XPT2046_TouchDetect() == TOUCH_PRESSED);
-	}
-	void _touchScreenEvent(ButtonEvent evt) {
-		if (evt == BTN_PRESSED) {
-			XPT2046_Touch(posinfo); // Get TouchScreen position
-			InterfaceSelector(posinfo[0], posinfo[1], GUISTACK[0]); // process the touchscreen position
-			if (currentinterface != GUISTACK[0]) { // execute only when the interface is changed
-				DisplayInterface(GUISTACK[0]);
-				currentinterface = GUISTACK[0];
-			}
-		}
-	}
-	addButton((Button) {
+	addButton((Button ) {
 		.eventListener = _touchScreenEvent,
 		.stateRetriever = _touchScreenGet,
 		.last_pressed = 0,
 		.debounce_time = 10,
 		.state = BTN_UP,
 	});
-#endif
 
 #ifdef USEIMU
 //	imu_calibrateGyro(&imuLeft);
 //	imu_calibrateGyro(&imuRight);
 	TIM3->PSC = (72000000 / 72000) - 1;
-	TIM3->ARR = (72000 / 700) - 1;
+	TIM3->ARR = (72000 / IMU_REFRESH_RATE) - 1;
 	HAL_TIM_Base_Start(&htim3);
 	__HAL_TIM_ENABLE_IT(&htim3, TIM_IT_UPDATE);
 #endif
@@ -301,91 +280,51 @@ int main(void)
 
 #ifdef USEIMU
 
-//		sprintf(buff, "hit count: %3d %3d %3d ", hits, count, imuLeft.downCount);
-//		LCD_DrawString(0, 140, buff);
-//////		LCD_DrawFormattedString(0, 140, "count: %d", count);
-//		sprintf(buff, "accL: %6.2f,%6.2f,%6.2f", imuLeft.acc[0], imuLeft.acc[1],
-//				imuLeft.acc[2]);
-//		LCD_DrawString(0, 20, buff);
-//		sprintf(buff, "L%9.2f,%9.2f,%9.2f", imuLeft.gyro[0], imuLeft.gyro[1],
-//				imuLeft.gyro[2]);
-//		LCD_DrawString(0, 40, buff);
-////		sprintf(buff, "accR: %6.2f,%6.2f,%6.2f", imuRight.acc[0], imuRight.acc[1],
-////				imuRight.acc[2]);
-//////				imuLeft.last_tick);
-////		LCD_DrawString(0, 60, buff);
-////		sprintf(buff, "%R9.2f,%9.2f,%9.2f", imuRight.gyro[0], imuRight.gyro[1],
-////				imuRight.gyro[2]);
-////		LCD_DrawString(0, 80, buff);
-//
-////		LCD_DrawString(0, 60, buff);
-////		sprintf(buff, "%9.2f,%9.2f,%9.2f", imuLeft.gyro_offset[0], imuLeft.gyro_offset[1], imuLeft.gyro_offset[2]);
-////		LCD_DrawString(0, 80, buff);
-////		sprintf(buff, "mag : %6.0f,%6.0f,%6.0f", imuLeft.mag[0], imuLeft.mag[1], imuLeft.mag[2]);
-////		LCD_DrawString(0, 100, buff);
-//
-////		imu_filter(imuLeft.acc[0], imuLeft.acc[1], imuLeft.acc[2], imuLeft.gyro[0], imuLeft.gyro[1], imuLeft.gyro[2]);
-////		MahonyAHRSupdateIMU(imuLeft.gyro[0], imuLeft.gyro[1], imuLeft.gyro[2], imuLeft.acc[0], imuLeft.acc[1], imuLeft.acc[2]);
-////		MahonyAHRSupdate(imuLeft.gyro[0], imuLeft.gyro[1], imuLeft.gyro[2],
-////							imuLeft.acc[0], imuLeft.acc[1], imuLeft.acc[2],
-////							imuLeft.mag[0], imuLeft.mag[1], imuLeft.mag[2]);
-////		float roll, pitch, yaw;
-////		eulerAngles(q_est, &roll, &pitch, &yaw);
-//		sprintf(buff, "oriL: %6.1f,%6.1f,%6.1f", imuLeft.roll, imuLeft.pitch,
-//				imuLeft.yaw);
-//		LCD_DrawString(0, 120, buff);
-////		sprintf(buff, "oriR: %6.2f,%6.2f,%6.2f", imuRight.roll, imuRight.pitch,
-////				imuRight.yaw);
-////		LCD_DrawString(0, 140, buff);
-////		sprintf(buff, "acc: %6.2f", imuLeft.pitch_acc);
-////		LCD_DrawString(0, 160, buff);
-//
-////		for (int i = 0; i < 6; i++)
-////			switch (states[i]) {
-////			case IMU_IDLE:
-////				LCD_DrawString(0, 180 + i * 16, "IDLE   ");
-////				break;
-////			case IMU_POS:
-////				LCD_DrawString(0, 180 + i * 16, "POS    ");
-////				break;
-////			case IMU_NEG:
-////				LCD_DrawString(0, 180 + i * 16, "NEG    ");
-////				break;
-////			case IMU_HIT_NP:
-////				LCD_DrawString(0, 180 + i * 16, "HIT_NP ");
-////				break;
-////			case IMU_HIT_PN:
-////				LCD_DrawString(0, 180 + i * 16, "HIT_PN ");
-////				break;
-////			case IMU_IDLE_NP:
-////				LCD_DrawString(0, 180 + i * 16, "IDLE_NP");
-////				break;
-////			case IMU_IDLE_PN:
-////				LCD_DrawString(0, 180 + i * 16, "IDLE_PN");
-////				break;
-////
-////			};
-//
-////		sprintf(buff, "acc : %6.2f,%6.2f,%6.2f", imuRight.acc[0], imuRight.acc[1], imuRight.acc[2]);
-////		LCD_DrawString(0, 120, buff);
-////		sprintf(buff, "gyro: %6.2f,%6.2f,%6.2f", imuRight.gyro[0], imuRight.gyro[1], imuRight.gyro[2]);
-////		LCD_DrawString(0, 140, buff);
-////		sprintf(buff, "mag : %6.2f,%6.2f,%6.2f", imuRight.mag[0], imuRight.mag[1], imuRight.mag[2]);
-////		LCD_DrawString(0, 160, buff);
-////
+		if (show_imu_data) {
+			sprintf(buff, "hit count: %3d %3d %3d ", hits, count,
+					imuLeft.downCount);
+			LCD_DrawString(0, 0, buff);
+
+			sprintf(buff, "accL: %6.2f,%6.2f,%6.2f", imuLeft.acc[0],
+					imuLeft.acc[1], imuLeft.acc[2]);
+			LCD_DrawString(0, 20, buff);
+			sprintf(buff, "L%9.2f,%9.2f,%9.2f", imuLeft.gyro[0],
+					imuLeft.gyro[1], imuLeft.gyro[2]);
+			LCD_DrawString(0, 40, buff);
+			sprintf(buff, "accR: %6.2f,%6.2f,%6.2f", imuRight.acc[0],
+					imuRight.acc[1], imuRight.acc[2]);
+			LCD_DrawString(0, 60, buff);
+			sprintf(buff, "R%9.2f,%9.2f,%9.2f", imuRight.gyro[0],
+					imuRight.gyro[1], imuRight.gyro[2]);
+			LCD_DrawString(0, 80, buff);
+
+			sprintf(buff, "%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", imuLeft.gyro_offset[0], imuLeft.gyro_offset[1], imuLeft.gyro_offset[2],
+					imuRight.gyro_offset[0], imuRight.gyro_offset[1], imuRight.gyro_offset[2]);
+			LCD_DrawString(0, 100, buff);
+
+			sprintf(buff, "oriL: %6.1f,%6.1f,%6.1f", imuLeft.roll,
+					imuLeft.pitch, imuLeft.yaw);
+			LCD_DrawString(0, 120, buff);
+			sprintf(buff, "oriR: %6.2f,%6.2f,%6.2f", imuRight.roll,
+					imuRight.pitch, imuRight.yaw);
+			LCD_DrawString(0, 140, buff);
+		}
 
 		if (HAL_GetTick() - gyro_disp_tick > 100) {
-			sprintf(buff, "%4.0f, %4.0f", imuLeft.yaw, imuLeft.acc[2]);
+			sprintf(buff, "%4.0f, %4.0f, %4.0f, %4.0f  ", imuLeft.yaw,
+					imuLeft.acc[2], imuRight.yaw, imuRight.acc[2]);
 			LCD_DrawString(0, 224, buff);
 			gyro_disp_tick = HAL_GetTick();
+
+			//			drumPlay(1);
 		}
 
 		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_6) == GPIO_PIN_SET) {
 			if (PC6 == BTN_UP) {
 				PC6 = BTN_DOWN;
 				initIMUStruct(&imuLeft);
-//				imu_setActive(&imuLeft);
-//				MPU9250_Init();
+				//				imu_setActive(&imuLeft);
+				//				MPU9250_Init();
 			}
 		} else {
 			PC6 = BTN_UP;
@@ -399,35 +338,69 @@ int main(void)
 		} else {
 			PC7 = BTN_UP;
 		}
+
 #endif
 
 #ifdef TESTMUSIC
 
+//		if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) {
+//			if (PA0 == BTN_UP) {
+//				PA0 = BTN_DOWN;
+//				// run command
+//				int res = setMusic(musicFilenames[musicNum]);
+//				playMusic();
+////				seekMusic(0.5);
+//				musicNum = (musicNum + 1) % musicFileNum;
+////				LCD_DrawString(0, 100, "PA0 down");
+//
+//				WavHeader *header = &(sampleFile.header);
+//				sprintf(buff, "hertz: %d", header->sampleFreq);
+//				LCD_DrawString(30, 140, buff);
+//				sprintf(buff, "bits/sample: %d", header->bitsPerSample);
+//				LCD_DrawString(30, 160, buff);
+//				sprintf(buff, "channels: %d", header->channels);
+//				LCD_DrawString(30, 180, buff);
+//				sprintf(buff, "data: %d  ", header->dataChunkLength);
+//				LCD_DrawString(30, 200, buff);
+//				sprintf(buff, "debug %d %d %d     ", sampleFile.sampleCount,
+//						sampleFile.fileEmpty, sampleFile.inUse);
+//				LCD_DrawString(30, 220, buff);
+//			}
+//		} else {
+//			PA0 = BTN_UP;
+////			LCD_DrawString(0, 100, "PA0 up  ");
+//		}
+//
+//		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET) {
+//			if (PC13 == BTN_UP) {
+//				PC13 = BTN_DOWN;
+//				// run command
+//				if (musicState == MUSIC_PLAYING) {
+//					pauseMusic();
+//				} else {
+//					playMusic();
+//				}
+////				stopMusic();
+////				seekMusic(0.5);
+////				sprintf(buff, "prog: %.2f", getMusicProgress());
+////				LCD_DrawString(0, 120, buff);
+//			}
+//		} else {
+//			PC13 = BTN_UP;
+////			LCD_DrawString(0, 120, "PC13 up  ");
+//		}
+
 		if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) {
 			if (PA0 == BTN_UP) {
 				PA0 = BTN_DOWN;
-				// run command
-				int res = setMusic(musicFilenames[musicNum]);
-				playMusic();
-//				seekMusic(0.5);
-				musicNum = (musicNum + 1) % musicFileNum;
-//				LCD_DrawString(0, 100, "PA0 down");
-
-				WavHeader *header = &(sampleFile.header);
-				sprintf(buff, "hertz: %d", header->sampleFreq);
-				LCD_DrawString(30, 140, buff);
-				sprintf(buff, "bits/sample: %d", header->bitsPerSample);
-				LCD_DrawString(30, 160, buff);
-				sprintf(buff, "channels: %d", header->channels);
-				LCD_DrawString(30, 180, buff);
-				sprintf(buff, "data: %d  ", header->dataChunkLength);
-				LCD_DrawString(30, 200, buff);
-				sprintf(buff, "debug %d %d %d     ", sampleFile.sampleCount,
-						sampleFile.fileEmpty, sampleFile.inUse);
-				LCD_DrawString(30, 220, buff);
+				show_imu_data = !show_imu_data;
 			}
 		} else {
-			PA0 = BTN_UP;
+			if (PA0 == BTN_DOWN) {
+				PA0 = BTN_UP;
+				if (!show_imu_data)
+					DisplayInterface(GUISTACK[0]);
+			}
 //			LCD_DrawString(0, 100, "PA0 up  ");
 		}
 
@@ -440,14 +413,14 @@ int main(void)
 				} else {
 					playMusic();
 				}
-//				stopMusic();
-//				seekMusic(0.5);
-//				sprintf(buff, "prog: %.2f", getMusicProgress());
-//				LCD_DrawString(0, 120, buff);
+				//				stopMusic();
+				//				seekMusic(0.5);
+				//				sprintf(buff, "prog: %.2f", getMusicProgress());
+				//				LCD_DrawString(0, 120, buff);
 			}
 		} else {
 			PC13 = BTN_UP;
-//			LCD_DrawString(0, 120, "PC13 up  ");
+			//			LCD_DrawString(0, 120, "PC13 up  ");
 		}
 
 //		sprintf(buff, "%d", numActiveDrums);
@@ -517,6 +490,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim->Instance == TIM2) {
 #ifdef TESTMUSIC
 		precomputeMix();
+
 #endif
 	} else if (htim->Instance == TIM3) {
 #ifdef USEIMU

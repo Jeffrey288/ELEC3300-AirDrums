@@ -37,6 +37,10 @@ uint16_t musicFileNum = 0;
 
 void addMusic(char* fileName) {
 	strcpy(musicFilenames[musicFileNum++], fileName);
+//	if (fil->lfname[0] == 0)
+//		strcpy(musicFilenamesLong[musicFileNum++], fil->fname);
+//	else
+//		strcpy(musicFilenamesLong[musicFileNum++], fil->lfname);
 }
 
 int setMusic(char* fileName) {
