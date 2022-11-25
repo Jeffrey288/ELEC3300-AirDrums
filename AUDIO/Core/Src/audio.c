@@ -2,8 +2,8 @@
 #include "stm32f1xx_hal.h"
 #include "fatfs.h"
 
-uint8_t drumInitFlags[DRUM_NUM] = {0};
-char drumFileNames[DRUM_NUM][20] = { DRUM_MACRO(DRUM_FILENAME_DEF) };
+//uint8_t drumInitFlags[DRUM_NUM] = {0};
+//char drumFileNames[DRUM_NUM][20] = { DRUM_MACRO(DRUM_FILENAME_DEF) };
 
 FileStruct drumFileStructs[DRUM_NUM];
 
@@ -87,44 +87,49 @@ void musicUpdate() {
 // Read the filenames, and match them to the files
 // Returns -1 if there is no match, else returns the drum_num
 int drumMatch(char *fileName) {
-	for (int i = 0; i < DRUM_NUM; i++) {
-		if (!drumInitFlags[i]) {
-			if (!strcmp(fileName, drumFileNames[i])) {
-				setFileName(&drumFileStructs[i], fileName);
-				drumInitFlags[i] = 1;
-				return i;
-			}
-		}
-	}
+//	for (int i = 0; i < DRUM_NUM; i++) {
+//		if (!drumInitFlags[i]) {
+//			if (!strcmp(fileName, drumFileNames[i])) {
+//				setFileName(&drumFileStructs[i], fileName);
+//				drumInitFlags[i] = 1;
+//				return i;
+//			}
+//		}
+//	}
 	return -1;
 }
 
-
+#define DRUM_DEF(a, b, ...) setConstBuffPtr(&drumFileStructs[a], b, sizeof(b)/sizeof(uint16_t));
 int audioInit() {
-	for (int i = 0; i < DRUM_NUM; i++) {
-		if (!drumInitFlags[i]) return i;
-		if (openFile(&drumFileStructs[i]) != FR_OK) return i;
+
+	DRUM_MACRO(DRUM_DEF)
+
+//	for (int i = 0; i < DRUM_NUM; i++) {
+//		if (!drumInitFlags[i]) return i;
+//		if (openFile(&drumFileStructs[i]) != FR_OK) return i;
 //		initFileStruct(&drumFileStructs[i]);
-	}
+//	}
+
 	return -1;
 }
 
 // -------------- DRUM PLAY -------------------
 
 void drumPlay(DRUMS index) {
-	char buff[30];
-	sprintf(buff, "drum: %d", index);
-	LCD_DrawString(0, 160, buff);
-	openFile(&drumFileStructs[index]);
+//	char buff[30];
+//	sprintf(buff, "drum: %d", index);
+//	LCD_DrawString(0, 160, buff);
+//	openFile(&drumFileStructs[index]);
 //	f_lseek(&(drumFileStructs[index].file), WAV_HEADER_SIZE);
 	initFileStruct(&drumFileStructs[index]);
+	drumFileStructs[index].sampleCount = 0;
 	activateDrum(index);
 }
 
 void drumUpdate() {
 	DRUMS temp[DRUM_NUM]; int temp_count = 0; // the drums that need to be deactivated
 	for (int i = 0; i < numActiveDrums; i++) {
-		readFile(&drumFileStructs[activeDrums[i]]);
+//		readFile(&drumFileStructs[activeDrums[i]]);
 		if (!drumFileStructs[activeDrums[i]].inUse) {
 			temp[temp_count++] = activeDrums[i];
 		}
@@ -172,10 +177,11 @@ inline void precomputeMix() {
 	for (int i = 0; i < AUDIO_PRECOMP; i++) {
 		sample_sum = 0;
 		if (musicState == MUSIC_PLAYING)
-			sample_sum += readSample(&sampleFile);
+			sample_sum += readSample(&sampleFile) / 4;
 		drumMix(sample_sum);
 		*(audioLeft.curr++) = (-sample_sum + 32768);
 	}
+//	writeRecording(AUDIO_PRECOMP);
 	audioLeft.toWrite++;
 	if (audioLeft.toWrite >= AUDIO_BLOCKS) {
 		audioLeft.curr = audioLeft.first;

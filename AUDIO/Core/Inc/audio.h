@@ -1,15 +1,24 @@
 #ifndef __AUDIO_H
 #define __AUDIO_H
+#include "recording.h"
 #include "fileBuff.h"
+#include "fatfs.h"
+#include "drumSounds.h"
+
+//#define DRUM_MACRO(X) \
+//	X(KICK, "kick.wav") \
+//	X(CRASH, "crash.wav") \
+//	X(LOW_TOM, "tom1.wav") \
+//	X(HIGH_TOM, "tom2.wav")
 
 #define DRUM_MACRO(X) \
-	X(KICK, "kick.wav") \
-	X(CRASH, "crash.wav") \
-	X(LOW_TOM, "tom1.wav") \
-	X(HIGH_TOM, "tom2.wav")
+	X(KICK, kick) \
+	X(CRASH, crash) \
+	X(LOW_TOM, tom1) \
+	X(HIGH_TOM, tom2)
 
 #define DRUM_ENUMS_DEF(a, ...) a,
-#define DRUM_FILENAME_DEF(a, b, ...) b,
+//#define DRUM_FILENAME_DEF(a, b, ...) b,
 
 typedef enum {
 	DRUM_MACRO(DRUM_ENUMS_DEF)
@@ -29,7 +38,7 @@ extern MusicState musicState;
 extern char musicFilenames[60][15];
 extern char musicFilenamesLong[60][15];
 extern uint16_t musicFileNum;
-void addMusic(char* fileName);
+void addMusic(char* str);
 
 int setMusic(char* fileName);
 int playMusic();
@@ -51,7 +60,7 @@ extern int numActiveDrums;
 
 #define drumMix(sampleSum) \
 	for (int i = 0; i < numActiveDrums; i++) { \
-		sampleSum += readSample(&drumFileStructs[activeDrums[i]]) / 4; \
+		sampleSum += readSample(&drumFileStructs[activeDrums[i]]) / 3; \
 	}
 
 // ----------- AUDIO PLAYBACK -------------
