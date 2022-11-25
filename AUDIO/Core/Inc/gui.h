@@ -18,6 +18,7 @@
 #include "Taiko.h"
 #include "Return.h"
 #include "WavImage.h"
+#include "recording.h"
 
 #include "audio.h"
 
@@ -36,13 +37,6 @@ static int GUISTACK[5] = { 0, 0, 0, 0, 0 };
 
 // stores the file being selected
 static int currentfile = -1;
-
-// stores whether recording is on
-typedef enum {
-	RecordingOff, RecordingOn,
-} RecordingState;
-
-static RecordingState recordingstatus = RecordingOff;
 
 static int position = 0;
 static short stopstatus = 0;
@@ -251,7 +245,7 @@ static void MusicTimeline(float pos, uint8_t drawWhole) {
 	if (drawWhole) {
 
 		// Draw the playbar
-		LCD_DrawRectangle(30, 200, max((xpos - 30) - 10, 0), 5, (recordingstatus == 1) ? RED : BLACK); // BEFORE THE THING
+		LCD_DrawRectangle(30, 200, max((xpos - 30) - 10, 0), 5, (recState == 1) ? RED : BLACK); // BEFORE THE THING
 		LCD_DrawRectangle(xpos + 10, 200, max((300 - xpos) - 10, 0) , 5, 0xF700); // AFTER THE THING
 
 		// Draw the bob
@@ -262,7 +256,7 @@ static void MusicTimeline(float pos, uint8_t drawWhole) {
 		// Draw the playbar
 		if (prev_xpos < xpos) {
 			LCD_DrawRectangle(prev_xpos - 10, 190, (xpos - prev_xpos), 40, WHITE);
-			LCD_DrawRectangle(prev_xpos - 10, 200, (xpos - prev_xpos), 5, (recordingstatus == 1) ? RED : BLACK);
+			LCD_DrawRectangle(prev_xpos - 10, 200, (xpos - prev_xpos), 5, (recState == 1) ? RED : BLACK);
 		} else {
 			LCD_DrawRectangle(xpos + 10, 190, (prev_xpos - xpos + 1), 40, WHITE);
 			LCD_DrawRectangle(xpos + 10, 200, (prev_xpos - xpos + 1), 5, 0xF700);
@@ -318,8 +312,8 @@ static void MusicPlayerInterfaceSelector(int xpos, int ypos, short mode) {
 		imagebuilder(20, 80, 57, 57, PlayButton); // draw the play button
 	} else if (boundarychecker(xpos, ypos, 140, 200, 80, 140)) { // if the recording button is pressed
 		// to be implemented
-		if (recordingstatus == RecordingOn) recordingstatus = RecordingOff;
-		else /* recordingstatus == RecordingOff */recordingstatus = RecordingOn;
+		if (recState == RecordingOn) recState = RecordingOff;
+		else /* recState == RecordingOff */recState = RecordingOn;
 	} else if (boundarychecker(xpos, ypos, 30, 300, 180, 200)) {// Music Drag Timeline
 		float RelativeMusicPosition = (xpos - 30) / 270.0;
 //		sprintf(buff, "diu %.3f", RelativeMusicPosition);
@@ -488,5 +482,23 @@ static void InterfaceHandler() {
 // _____Interface: call once, print the interface / update the interface (LCD_Draw, imgbuilder)
 // _____Handler: run in a while loop, put any updating ADC/volume / music update function
 // _____InterfaceSelector/Selector: xpos, ypos
+
+// for buttons
+
+static int _touchScreenGet() {
+	return (XPT2046_TouchDetect() == TOUCH_PRESSED);
+}
+
+static void _touchScreenEvent(ButtonEvent evt) {
+	if (evt == BTN_PRESSED) {
+		XPT2046_Touch(posinfo); // Get TouchScreen position
+		InterfaceSelector(posinfo[0], posinfo[1], GUISTACK[0]); // process the touchscreen position
+		if (currentinterface != GUISTACK[0]) { // execute only when the interface is changed
+			DisplayInterface(GUISTACK[0]);
+			currentinterface = GUISTACK[0];
+		}
+	}
+}
+
 
 #endif __GUI_H

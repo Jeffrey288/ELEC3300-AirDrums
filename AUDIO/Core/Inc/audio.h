@@ -26,7 +26,8 @@ typedef enum {
 } MusicState;
 extern MusicState musicState;
 
-extern char musicFilenames[20][15];
+extern char musicFilenames[60][15];
+extern char musicFilenamesLong[60][15];
 extern uint16_t musicFileNum;
 void addMusic(char* fileName);
 

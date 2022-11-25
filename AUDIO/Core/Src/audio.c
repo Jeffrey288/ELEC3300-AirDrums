@@ -31,7 +31,8 @@ static inline void deactivateDrum(DRUMS index) {
 MusicState musicState = MUSIC_UNINITED;
 FileStruct sampleFile; // the file storing the music being played
 
-char musicFilenames[20][15];
+char musicFilenames[60][15];
+char musicFilenamesLong[60][15];
 uint16_t musicFileNum = 0;
 
 void addMusic(char* fileName) {
