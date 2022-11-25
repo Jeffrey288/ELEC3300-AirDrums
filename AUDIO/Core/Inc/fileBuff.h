@@ -50,6 +50,8 @@ typedef struct {
 	uint8_t currWriting;
 	uint32_t sampleCount;
 	uint32_t totalSampleCount;
+	const uint16_t* constBuffPtr;
+	uint16_t constBuffSize;
 } FileStruct;
 
 #define fileStructEmpty(f, index) (!((f)->structs[index].buffSize))
@@ -61,6 +63,12 @@ typedef struct {
 
 static inline void setFileName(FileStruct *fileStruct, char* name) {
 	strcpy(fileStruct->fileName, name);
+	fileStruct->constBuffPtr = 0;
+}
+
+static inline void setConstBuffPtr(FileStruct *fileStruct, const uint16_t* constBuffPtr, uint16_t size) {
+	fileStruct->constBuffPtr = constBuffPtr;
+	fileStruct->totalSampleCount = size;
 }
 
 static inline void initFileStruct(FileStruct *fileStruct) {
@@ -73,7 +81,6 @@ static inline void initFileStruct(FileStruct *fileStruct) {
 	fileStruct->inUse = 1;
 	fileStruct->fileEmpty = 0;
 	fileStruct->sampleCount = 0;
-	fileStruct->totalSampleCount = 0;
 }
 
 static inline int initFileHeader(FileStruct *fileStruct) {
@@ -85,6 +92,7 @@ static inline int initFileHeader(FileStruct *fileStruct) {
 
 static inline int readFile(FileStruct* f) {
 	if (f->fileEmpty) return -1;
+	if (f->constBuffPtr != 0) return -2;
 
 	if (f->currWriting == f->currReading) return -1;
 	if (fileStructEmpty(f, f->currWriting)) {
@@ -102,20 +110,28 @@ static inline int16_t readSample(FileStruct* f) {
 	uint16_t temp;
 	if (!f->inUse) return 0;
 
-	if (!fileStructEmpty(f, f->currReading)) {
-		f->structs[f->currReading].buffSize -= 2;
-		temp = (f->structs[f->currReading].curr[1] << 8) | f->structs[f->currReading].curr[0];
-		f->structs[f->currReading].curr += 2;
-		f->sampleCount++;
-		return temp;
-	} else if (!fileStructEmpty(f, (f->currReading + 1) % BUFF_NUM)) {
-		f->currReading = (f->currReading + 1) % BUFF_NUM;
-		f->structs[f->currReading].curr = f->structs[f->currReading].first;
-		readSample(f);
+	if (f->constBuffPtr == 0) {
+		if (!fileStructEmpty(f, f->currReading)) {
+			f->structs[f->currReading].buffSize -= 2;
+			temp = (f->structs[f->currReading].curr[1] << 8) | f->structs[f->currReading].curr[0];
+			f->structs[f->currReading].curr += 2;
+			f->sampleCount++;
+			return temp;
+		} else if (!fileStructEmpty(f, (f->currReading + 1) % BUFF_NUM)) {
+			f->currReading = (f->currReading + 1) % BUFF_NUM;
+			f->structs[f->currReading].curr = f->structs[f->currReading].first;
+			readSample(f);
+		} else {
+			if (f->fileEmpty) f->inUse = 0;
+			return 0;
+		}
 	} else {
-		if (f->fileEmpty) f->inUse = 0;
-		return 0;
+		temp = f->constBuffPtr[f->sampleCount++];
+		if (f->sampleCount >= f->totalSampleCount)
+			f->inUse = 0;
+		return temp;
 	}
+
 }
 
 static inline int openFile(FileStruct* f) {
