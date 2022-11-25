@@ -212,8 +212,10 @@ int main(void)
 		if (res != FR_OK || fno.fname[0] == 0)
 			break;
 		int len = strlen(fno.fname);
-		if (drumMatch(fno.fname) == -1
-				&& (fno.fname[len - 1] == 'V' || fno.fname[len - 1] == 'v')) {
+		if (
+//				drumMatch(fno.fname) == -1 &&
+				(fno.fname[len - 1] == 'V' || fno.fname[len - 1] == 'v')
+		) {
 			addMusic(fno.fname);
 		}
 	}
@@ -225,6 +227,7 @@ int main(void)
 
 #ifdef USEMUSIC
 	audioChannelInit();
+	audioInit();
 #endif
 
 	initButtons();
