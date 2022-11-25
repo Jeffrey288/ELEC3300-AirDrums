@@ -3,6 +3,8 @@
 #include "madgwickFilter.h"
 #include "kalman.h"
 
+#define IMU_REFRESH_RATE 2000
+
 typedef enum {
 	IMU_IDLE,
 	IMU_NEG,
@@ -61,7 +63,7 @@ extern imuStruct *imuStructs[2];
 extern imuStruct imuLeft;
 extern imuStruct imuRight;
 
-static void imu_setActive(imuStruct* p) {
+static void inline imu_setActive(imuStruct* p) {
 	MPU9250_CS_GPIO = p->port;
 	MPU9250_CS_PIN = p->pin;
 }
@@ -83,7 +85,7 @@ static void imu_calibrateGyro(imuStruct* p) {
     for (int j = 0; j < 3; j++) p->gyro_offset[j] = (float) sum[j] / numCalPoints;
 }
 
-void updateIMUs();
-void updateIMU(imuStruct*);
+extern void inline updateIMUs();
+extern void inline updateIMU(imuStruct*);
 void initIMUStructs();
 void initIMUStruct(imuStruct*);

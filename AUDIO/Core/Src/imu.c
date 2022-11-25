@@ -8,12 +8,15 @@ extern int hits;
 // imuLeft = (imuStruct ) { .port = GPIOE, .pin = GPIO_PIN_5, .gyro_offset = {957.78, 515.08, 14.72} }; // 250DPS
 //imuStruct imuLeft = (imuStruct) { .port = GPIOE, .pin = GPIO_PIN_5, .gyro_offset = {118.28, 63.09, -0.52}}; // 2000DPS
 //imuStruct imuLeft = (imuStruct) { .port = GPIOE, .pin = GPIO_PIN_5, .gyro_offset = {479.56, 259.84, -22.92}}; // 2000DPS
-imuStruct imuLeft = (imuStruct) { .port = GPIOE, .pin = GPIO_PIN_5, .gyro_offset = {118.44, 63.68, 6.68}}; // 2000DPS
+//imuStruct imuLeft = (imuStruct) { .port = GPIOE, .pin = GPIO_PIN_5, .gyro_offset = {118.44, 63.68, 6.68}}; // 2000DPS
+imuStruct imuLeft = (imuStruct) { .port = GPIOE, .pin = GPIO_PIN_5, .gyro_offset = {122.06, 63.60, 6.72}}; // 2000DPS
 //imuStruct imuLeft = (imuStruct) { .port = GPIOE, .pin = GPIO_PIN_5, .gyro_offset = {89.12, 90.26, -5.78}}; // 2000DPS
 //imuStruct imuLeft = (imuStruct) { .port = GPIOE, .pin = GPIO_PIN_5, .gyro_offset = {89.12, 90.26, -5.78},
 //	.prev_pitch = {0, 0, 0, 0, 0, 0, 0}, .pitch_acc = 0, .angles = {0, 0, 0}, .q = {1, 0, 0, 0}, .accelFlag = 0,
 //	.state = IMU_IDLE, .hit_tick = 0, .upCount = 0, .downCount = 0}; // 2000DPS
-imuStruct imuRight = (imuStruct) { .port = GPIOE, .pin = GPIO_PIN_6 };
+imuStruct imuRight = (imuStruct) { .port = GPIOE, .pin = GPIO_PIN_6, .gyro_offset = {-64.29, -22.97, -0.61} };
+//imuStruct imuRight = (imuStruct) { .port = GPIOE, .pin = GPIO_PIN_6, .gyro_offset = {-53.88, -23.05, -0.40} };
+//imuStruct imuRight = (imuStruct) { .port = GPIOE, .pin = GPIO_PIN_6, .gyro_offset = {-569.91, -162.70, 5.67} };
 imuStruct *imuStructs[2] = {&imuLeft, &imuRight};
 
 void initIMUStruct(imuStruct *imu) {
@@ -48,46 +51,55 @@ void initIMUStructs() {
 
 // future improvements
 // https://aircconline.com/csit/papers/vol10/csit100306.pdf
-void updateIMU(imuStruct *imu) {
+void inline updateIMU(imuStruct *imu) {
 
 	imu_setActive(imu);
-
 
 	MPU9250_GetData(imu->raw, imu->raw + 6, imu->raw + 3); // raw is acc, gyro, mag
 
 	// check here for the scale factors: https://github.com/MarkSherstan/STM32-MPU6050-MPU9250-I2C-SPI/blob/main/C/SPI/Core/Src/MPU9250.c
-	for (int i = 0; i < 3; i++) {
-		imu->acc[i] = imu->raw[i] / 2048.0;
-//		imu->acc[i] = imu->raw[i];
-//		imu->acc[i] = kalmanUpdate(&accKalman[i], imu->acc[i]) * 9.81;
-		imu->acc[i] = imu->acc[i] * 9.81;
-//		imu->gyro[i] = imu->raw[i + 3];
-		imu->gyro[i] = imu->pitch_multiplier * (imu->raw[i + 3] - imu->gyro_offset[i]) / 16.4;
-//		imu->gyro[i] = kalmanUpdate(&gyroKalman[i], imu->gyro[i]);
-		imu->gyro[i] = imu->gyro[i] / 180 * PI;
-//		imu->gyro[i] = kalmanUpdate(&(imu->gyro_filters[i]), imu->gyro[i]);
-		imu->mag[i] = imu->raw[i + 6];
-	}
+//	for (int i = 0; i < 3; i++) {
+////		imu->acc[i] = imu->raw[i] / 2048.0;
+////		imu->acc[i] = imu->acc[i] * 9.81;
+//		imu->acc[i] = imu->raw[i] * 9.81 / 2048.0;
+////		imu->acc[i] = imu->raw[i];
+////		imu->acc[i] = kalmanUpdate(&accKalman[i], imu->acc[i]) * 9.81;
+////		imu->gyro[i] = imu->raw[i + 3];
+////		imu->gyro[i] = imu->pitch_multiplier * (imu->raw[i + 3] - imu->gyro_offset[i]) / 16.4;
+////		imu->gyro[i] = imu->gyro[i] / 180 * PI;
+//		imu->gyro[i] = (imu->raw[i + 3] - imu->gyro_offset[i]) / 16.4 / 180 * PI;
+////		imu->gyro[i] = kalmanUpdate(&gyroKalman[i], imu->gyro[i]);
+////		imu->gyro[i] = kalmanUpdate(&(imu->gyro_filters[i]), imu->gyro[i]);
+////		imu->mag[i] = imu->raw[i + 6]; // will not be using mag
+//	}
+//	imu->acc[0] = imu->raw[0] * 0.00479003906f;
+//	imu->acc[1] = imu->raw[1] * 0.00479003906f;
+	imu->acc[2] = imu->raw[2] * 0.00479003906f;
+//	imu->gyro[0] = (imu->raw[3] - imu->gyro_offset[0]) * 0.00106422515f;
+//	imu->gyro[1] = (imu->raw[4] - imu->gyro_offset[1]) * 0.00106422515f;
+	imu->gyro[2] = (imu->raw[5] - imu->gyro_offset[2]) * 0.00106422515f;
 
 
-	for (int i = 7 - 1; i >= 1; i--) {
-		imu->prev_gyro[i] = imu->prev_gyro[i - 1]; // this is wrong :D
-		imu->prev_ticks[i] = imu->prev_ticks[i - 1];
-	}
-	imu->prev_gyro[0] = imu->gyro[2];
-	imu->prev_ticks[0] = HAL_GetTick();
-
-	float deltaT;
+//	for (int i = 7 - 1; i >= 1; i--) {
+//		imu->prev_gyro[i] = imu->prev_gyro[i - 1]; // this is wrong :D
+//		imu->prev_ticks[i] = imu->prev_ticks[i - 1];
+//	}
+//	imu->prev_gyro[0] = imu->gyro[2];
+//	imu->prev_ticks[0] = HAL_GetTick();
+//
+//	float deltaT;
 
 //	deltaT = (HAL_GetTick() - imu->last_tick) / 1000.0;
 //	imu->last_tick = HAL_GetTick();
-//	imu->roll += imu->gyro[2] * deltaT * 180 / PI;
+	imu->yaw += imu->gyro[2] * (1.0 / IMU_REFRESH_RATE) * 180 / PI;
 
 //	deltaT = (imu->prev_ticks[0] - imu->prev_ticks[2]) / 1000.0 / 2;
 //	imu->pitch += deltaT / 2 * (imu->prev_gyro[0] + imu->prev_gyro[2]) * 180 / PI;
 
-	deltaT = (imu->prev_ticks[0] - imu->prev_ticks[2]) / 1000.0 / 2;
-	imu->yaw += deltaT / 6 * (imu->prev_gyro[0] + 4 * imu->prev_gyro[1] + imu->prev_gyro[2]) * 180 / PI;
+//	deltaT = (imu->prev_ticks[0] - imu->prev_ticks[2]) / 1000.0 / 2;
+//	imu->yaw += deltaT / 6 * (imu->prev_gyro[0] + 4 * imu->prev_gyro[1] + imu->prev_gyro[2]) * 180 / PI;
+	if (imu->yaw > 80) imu->yaw = 80;
+	else if (imu->yaw < -80) imu->yaw = -80;
 
 //#define IMU_ITERS 3
 //	for (int i = 0; i < IMU_ITERS; i++)
@@ -116,68 +128,45 @@ void updateIMU(imuStruct *imu) {
 //	}
 
 	// (0.7 + 0.3 * expf((imu->upCount - imu->downCount)/50.0))
-//	switch (imu->state) {
-//	case IMU_IDLE:
-//	case IMU_IDLE_PN:
-//	case IMU_IDLE_NP:
-//		if (imu->pitch_acc < ((imu->downCount - imu->upCount > 10) ? -8 : -13)) {
+	switch (imu->state) {
+	case IMU_IDLE:
+	case IMU_IDLE_NP:
+		imu->accelFlag = 0;
+		if (imu->acc[2] < -22) {
 //			if (imu->state != IMU_IDLE_PN) {
-//				imu->state = IMU_NEG;
-//				imu->hit_tick = HAL_GetTick();
+				imu->state = IMU_NEG;
+				imu->hit_tick = HAL_GetTick();
 //			} else if (imu->state == IMU_IDLE_PN && HAL_GetTick() - imu->hit_tick < 70 && imu->pitch_acc < -12) {
 //				imu->hit_tick = HAL_GetTick();
 //			} else {
 //				imu->state = IMU_IDLE;
 //			}
-//		} else if (imu->pitch_acc > ((imu->upCount - imu->downCount > 10) ? 8 : 13)) {
-//			if (imu->state != IMU_IDLE_NP) {
-//				imu->state = IMU_POS;
-//				imu->hit_tick = HAL_GetTick();
-//			} else if (imu->state == IMU_IDLE_NP && HAL_GetTick() - imu->hit_tick < 70 && imu->pitch_acc > 12) {
-//				imu->hit_tick = HAL_GetTick();
-//			} else {
-//				imu->state = IMU_IDLE;
-//			}
-//		} else if (HAL_GetTick() - imu->hit_tick > 70) { // effectively a cooldown to prevent a hit being detected in the opposite direciton
-//			imu->state = IMU_IDLE;
-//		}
-//		break;
-//	case IMU_POS:
-//		if (HAL_GetTick() - imu->hit_tick < 90) {
-//			if (imu->pitch_acc < -6) {
-//				hits++;
-//				imu->upCount++;
-//				imu->state = IMU_HIT_PN;
-//				imu->hit_tick = HAL_GetTick();
-//			}
-//		} else {
-//			imu->state = IMU_IDLE;
-//		}
-//		break;
-//	case IMU_NEG:
-//		if (HAL_GetTick() - imu->hit_tick < 90) {
-//			if (imu->pitch_acc > 6) {
-//				hits++;
-//				imu->downCount++;
-//				imu->state = IMU_HIT_NP;
-//				imu->hit_tick = HAL_GetTick();
-//			}
-//		} else {
-//			imu->state = IMU_IDLE;
-//		}
-//		break;
-//	case IMU_HIT_NP:
-//	case IMU_HIT_PN:
-//		if (imu->pitch_acc < -8 || imu->pitch_acc > 8) {
-//			imu->hit_tick = HAL_GetTick();
-//		} else {
-//			if (HAL_GetTick() - imu->hit_tick > 60) {
-//				if (imu->state == IMU_HIT_NP) imu->state = IMU_IDLE_NP;
-//				else /*imu->state == IMU_HIT_PN*/ imu->state = IMU_IDLE_PN;
-//			}
-//		}
-//		break;
-//	}
+		} else if (HAL_GetTick() - imu->hit_tick > 70) { // effectively a cooldown to prevent a hit being detected in the opposite direciton
+			imu->state = IMU_IDLE;
+		}
+		break;
+
+	case IMU_NEG:
+		if (HAL_GetTick() - imu->hit_tick < 150) {
+			if (imu->acc[2] > 10) {
+				imu->accelFlag = 1;
+				imu->state = IMU_HIT_NP;
+				imu->hit_tick = HAL_GetTick();
+			}
+		} else {
+			imu->state = IMU_IDLE;
+		}
+		break;
+	case IMU_HIT_NP:
+		if (imu->acc[2] > 10) {
+			imu->hit_tick = HAL_GetTick();
+		} else {
+			if (HAL_GetTick() - imu->hit_tick > 40) {
+				imu->state = IMU_IDLE_NP;
+			}
+		}
+		break;
+	}
 //
 //	if (imu->pitch_acc < -7) imu->accelFlag = 1;
 //	if (imu->pitch_acc > 7) imu->accelFlag = 1;
@@ -186,7 +175,7 @@ void updateIMU(imuStruct *imu) {
 //	if (imu->acc[2] > 30) imu->accelFlag = 0;
 }
 
-void updateIMUs() {
+void inline updateIMUs() {
 	for (int i = 0; i < 2; i++) updateIMU(imuStructs[i]);
 
 }

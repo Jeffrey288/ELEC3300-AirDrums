@@ -1,7 +1,7 @@
 /*
  * MPU925.h
  *
- *  Created on: 23 мая 2018 г.
+ *  Created on: 23 пїЅпїЅпїЅ 2018 пїЅ.
  *      Author: Max
  */
 
@@ -51,7 +51,7 @@ typedef enum SampleRateDivider_ {
 
 uint8_t MPU9250_Init();
 /* read the data, each argiment should point to a array for x, y, and x */
-void MPU9250_GetData(int16_t* AccData, int16_t* MagData, int16_t* GyroData);
+extern void inline MPU9250_GetData(int16_t* AccData, int16_t* MagData, int16_t* GyroData);
 
 /* sets the sample rate divider to values other than default */
 void MPU9250_SetSampleRateDivider(SampleRateDivider srd);

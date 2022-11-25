@@ -15,6 +15,8 @@ int _drum3Get(Button *btn) { return HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_10) == GPIO
 void _drum3Event(ButtonEvent evt) { if (evt == BTN_PRESSED) drumPlay(LOW_TOM); }
 int _drum4Get(Button *btn) { return HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_11) == GPIO_PIN_RESET; }
 void _drum4Event(ButtonEvent evt) { if (evt == BTN_PRESSED) drumPlay(HIGH_TOM); }
+int _drumPedalGet(Button *btn) { return HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_12) == GPIO_PIN_SET; }
+void _drumPedalEvent(ButtonEvent evt) { if (evt == BTN_PRESSED) drumPlay(KICK); }
 
 //typedef {
 //	Dow
@@ -22,9 +24,9 @@ void _drum4Event(ButtonEvent evt) { if (evt == BTN_PRESSED) drumPlay(HIGH_TOM); 
 void _drumIMULeftEvent(ButtonEvent evt) {
 	if (evt == BTN_PRESSED) {
 		hits++;
-		if (imuLeft.yaw < -60) drumPlay(0);
+		if (imuLeft.yaw < -45) drumPlay(0);
 		else if (imuLeft.yaw < 0) drumPlay(1);
-		else if (imuLeft.yaw < 60) drumPlay(2);
+		else if (imuLeft.yaw < 45) drumPlay(2);
 		else drumPlay(3);
 	}
 }
@@ -32,10 +34,10 @@ void _drumIMULeftEvent(ButtonEvent evt) {
 void _drumIMURightEvent(ButtonEvent evt) {
 	if (evt == BTN_PRESSED) {
 		hits++;
-		if (imuRight.yaw < -100) drumPlay(hits % DRUM_NUM);
-		else if (imuRight.yaw < 0) drumPlay(hits % DRUM_NUM);
-		else if (imuRight.yaw < 100) drumPlay(hits % DRUM_NUM);
-		else drumPlay(hits % DRUM_NUM);
+		if (imuRight.yaw < -45) drumPlay(0);
+		else if (imuRight.yaw < 0) drumPlay(1);
+		else if (imuRight.yaw < 45) drumPlay(2);
+		else drumPlay(3);
 	}
 }
 
@@ -97,17 +99,24 @@ void initButtons() {
 		.state = BTN_UP,
 	});
 	addButton((Button) {
+		.eventListener = _drumPedalEvent,
+		.stateRetriever = _drumPedalGet,
+		.last_pressed = 0,
+		.debounce_time = 10,
+		.state = BTN_UP,
+	});
+	addButton((Button) {
 		.eventListener = _drumIMULeftEvent,
 		.stateRetriever = _drumIMULeftGet,
 		.last_pressed = 0,
-		.debounce_time = 70, // > 25.3 https://www.guinnessworldrecords.com/news/2022/1/worlds-fastest-drummer-11-year-old-achieves-2-370-bpm-688980#:~:text=11%2Dyear%2Dold%20Pritish%20A%20R,that's%2039.5%20beats%20per%20second.
+		.debounce_time = 50, // > 25.3 https://www.guinnessworldrecords.com/news/2022/1/worlds-fastest-drummer-11-year-old-achieves-2-370-bpm-688980#:~:text=11%2Dyear%2Dold%20Pritish%20A%20R,that's%2039.5%20beats%20per%20second.
 		.state = BTN_UP,
 	});
 	addButton((Button) {
 		.eventListener = _drumIMURightEvent,
 		.stateRetriever = _drumIMURightGet,
 		.last_pressed = 0,
-		.debounce_time = 70, // > 25.3 https://www.guinnessworldrecords.com/news/2022/1/worlds-fastest-drummer-11-year-old-achieves-2-370-bpm-688980#:~:text=11%2Dyear%2Dold%20Pritish%20A%20R,that's%2039.5%20beats%20per%20second.
+		.debounce_time = 50, // > 25.3 https://www.guinnessworldrecords.com/news/2022/1/worlds-fastest-drummer-11-year-old-achieves-2-370-bpm-688980#:~:text=11%2Dyear%2Dold%20Pritish%20A%20R,that's%2039.5%20beats%20per%20second.
 		.state = BTN_UP,
 	});
 }
