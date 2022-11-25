@@ -14,7 +14,7 @@
 #include "MusicPlayer.h"
 #include "DrumPractice.h"
 #include "Metronome.h"
-#include "Recording.h"
+#include "RecordingImg.h"
 #include "Taiko.h"
 #include "Return.h"
 #include "WavImage.h"
