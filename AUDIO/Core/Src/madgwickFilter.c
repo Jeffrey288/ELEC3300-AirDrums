@@ -30,6 +30,75 @@ void imu_filter(struct quaternion *q, float ax, float ay, float az, float gx, fl
 	if (gx * gx + gy * gy + gz * gz < 3 * 0.05 * 0.05 || (ax == 0.0f && ay == 0.0f && az == 0.0f)) return;
 
 //	float q0 = q->q1, q1 = q->q2, q2 = q->q3, q3 = q->q4;
+//	float recipNorm;
+//	float halfvx, halfvy, halfvz;
+//	float halfex, halfey, halfez;
+//	float qa, qb, qc;
+//
+//	volatile float twoKp = (2.0f * 0.5f);											// 2 * proportional gain (Kp)
+//	volatile float twoKi = (2.0f * 0.0f);											// 2 * integral gain (Ki)			// quaternion of sensor frame relative to auxiliary frame
+//	static volatile float integralFBx = 0.0f,  integralFBy = 0.0f, integralFBz = 0.0f;
+//	// Compute feedback only if accelerometer measurement valid (avoids NaN in accelerometer normalisation)
+//
+//	// Normalise accelerometer measurement
+//	recipNorm = invSqrt(ax * ax + ay * ay + az * az);
+//	ax *= recipNorm;
+//	ay *= recipNorm;
+//	az *= recipNorm;
+//
+//	// Estimated direction of gravity and vector perpendicular to magnetic flux
+//	halfvx = q1 * q3 - q0 * q2;
+//	halfvy = q0 * q1 + q2 * q3;
+//	halfvz = q0 * q0 - 0.5f + q3 * q3;
+//
+//	// Error is sum of cross product between estimated and measured direction of gravity
+//	halfex = (ay * halfvz - az * halfvy);
+//	halfey = (az * halfvx - ax * halfvz);
+//	halfez = (ax * halfvy - ay * halfvx);
+//
+//	// Compute and apply integral feedback if enabled
+//	if(twoKi > 0.0f) {
+//		integralFBx += twoKi * halfex * (deltaT);	// integral error scaled by Ki
+//		integralFBy += twoKi * halfey * (deltaT);
+//		integralFBz += twoKi * halfez * (deltaT);
+//		gx += integralFBx;	// apply integral feedback
+//		gy += integralFBy;
+//		gz += integralFBz;
+//	}
+//	else {
+//		integralFBx = 0.0f;	// prevent integral windup
+//		integralFBy = 0.0f;
+//		integralFBz = 0.0f;
+//	}
+//
+//	// Apply proportional feedback
+//	gx += twoKp * halfex;
+//	gy += twoKp * halfey;
+//	gz += twoKp * halfez;
+//
+//
+//	// Integrate rate of change of quaternion
+//	gx *= (0.5f * (deltaT));		// pre-multiply common factors
+//	gy *= (0.5f * (deltaT));
+//	gz *= (0.5f * (deltaT));
+//	qa = q0;
+//	qb = q1;
+//	qc = q2;
+//	q0 += (-qb * gx - qc * gy - q3 * gz);
+//	q1 += (qa * gx + qc * gz - q3 * gy);
+//	q2 += (qa * gy - qb * gz + q3 * gx);
+//	q3 += (qa * gz + qb * gy - qc * gx);
+//
+//	// Normalise quaternion
+//	recipNorm = invSqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
+//	q0 *= recipNorm;
+//	q1 *= recipNorm;
+//	q2 *= recipNorm;
+//	q3 *= recipNorm;
+//
+//	q->q1 = q0; q->q2 = q1; q->q3 = q2; q->q4 = q3;
+
+//	float q0 = q->q1, q1 = q->q2, q2 = q->q3, q3 = q->q4;
 //
 //	float recipNorm;
 //	float s0, s1, s2, s3;

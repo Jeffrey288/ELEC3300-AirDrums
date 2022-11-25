@@ -19,7 +19,7 @@
 #endif
 
 #ifndef GYRO_MEAN_ERROR
-    #define GYRO_MEAN_ERROR PI * (8.0f / 180.0f) // 5 deg/s gyroscope measurement error (in rad/s)  *from paper*
+    #define GYRO_MEAN_ERROR PI * (5.0f / 180.0f) // 5 deg/s gyroscope measurement error (in rad/s)  *from paper*
 #endif
 
 #ifndef BETA

@@ -26,6 +26,8 @@ typedef struct {
 	float acc[3];
 	float gyro[3];
 	float mag[3];
+	float prev_gyro[7];
+	float prev_ticks[7];
 
 // calculation-related stuff
 	struct quaternion q;

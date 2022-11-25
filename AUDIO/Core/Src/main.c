@@ -77,9 +77,9 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-//#define USEMUSIC
+#define USEMUSIC
 #define TESTMUSIC
-//#define IVANCODE
+#define IVANCODE
 #define USEIMU
 
 #ifdef TESTMUSIC
@@ -100,6 +100,7 @@ void display_success(int num, const char *msg) {
 
 char buff[31];
 int count = 0;
+FIL recordingFile;
 //extern int numActiveDrums;
 
 /* USER CODE END 0 */
@@ -197,9 +198,12 @@ int main(void)
 	}
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET);
 
-//	FIL file;
-//	while ()
 
+//	int i = 1;
+//	do {
+//		sprintf(buff, "Rec1.wav", i);
+//		f_findfirst(&dir, fno, "", buff);
+//	} while (fno.fname[0] != 0);
 
 
 	// LIST ALL OF THE AVAILABLE FILES
@@ -214,9 +218,9 @@ int main(void)
 		}
 	}
 
-	for (int i = 0; i < musicFileNum; i++) {
-		LCD_DrawString(0, 20 + 20 * i, musicFilenames[i]);
-	}
+//	for (int i = 0; i < musicFileNum; i++) {
+//		LCD_DrawString(0, 20 + 20 * i, musicFilenames[i]);
+//	}
 #endif
 
 #ifdef USEMUSIC
@@ -252,7 +256,7 @@ int main(void)
 //	imu_calibrateGyro(&imuLeft);
 //	imu_calibrateGyro(&imuRight);
 	TIM3->PSC = (72000000 / 72000) - 1;
-	TIM3->ARR = (72000 / 200) - 1;
+	TIM3->ARR = (72000 / 700) - 1;
 	HAL_TIM_Base_Start(&htim3);
 	__HAL_TIM_ENABLE_IT(&htim3, TIM_IT_UPDATE);
 #endif
@@ -277,6 +281,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	int last_tick = HAL_GetTick();
+	int gyro_disp_tick = HAL_GetTick();
 
 	ButtonState PA0 = BTN_UP;
 	ButtonState PC13 = BTN_UP;
@@ -293,85 +298,91 @@ int main(void)
 
 #ifdef USEIMU
 
-		sprintf(buff, "hit count: %3d %3d %3d ", hits, count, imuLeft.downCount);
-		LCD_DrawString(0, 140, buff);
-////		LCD_DrawFormattedString(0, 140, "count: %d", count);
-		sprintf(buff, "accL: %6.2f,%6.2f,%6.2f", imuLeft.acc[0], imuLeft.acc[1],
-				imuLeft.acc[2]);
-		LCD_DrawString(0, 20, buff);
-		sprintf(buff, "L%9.2f,%9.2f,%9.2f", imuLeft.gyro[0], imuLeft.gyro[1],
-				imuLeft.gyro[2]);
-		LCD_DrawString(0, 40, buff);
-//		sprintf(buff, "accR: %6.2f,%6.2f,%6.2f", imuRight.acc[0], imuRight.acc[1],
-//				imuRight.acc[2]);
-////				imuLeft.last_tick);
-//		LCD_DrawString(0, 60, buff);
-//		sprintf(buff, "%R9.2f,%9.2f,%9.2f", imuRight.gyro[0], imuRight.gyro[1],
-//				imuRight.gyro[2]);
-//		LCD_DrawString(0, 80, buff);
-
-//		LCD_DrawString(0, 60, buff);
-//		sprintf(buff, "%9.2f,%9.2f,%9.2f", imuLeft.gyro_offset[0], imuLeft.gyro_offset[1], imuLeft.gyro_offset[2]);
-//		LCD_DrawString(0, 80, buff);
-//		sprintf(buff, "mag : %6.0f,%6.0f,%6.0f", imuLeft.mag[0], imuLeft.mag[1], imuLeft.mag[2]);
-//		LCD_DrawString(0, 100, buff);
-
-//		imu_filter(imuLeft.acc[0], imuLeft.acc[1], imuLeft.acc[2], imuLeft.gyro[0], imuLeft.gyro[1], imuLeft.gyro[2]);
-//		MahonyAHRSupdateIMU(imuLeft.gyro[0], imuLeft.gyro[1], imuLeft.gyro[2], imuLeft.acc[0], imuLeft.acc[1], imuLeft.acc[2]);
-//		MahonyAHRSupdate(imuLeft.gyro[0], imuLeft.gyro[1], imuLeft.gyro[2],
-//							imuLeft.acc[0], imuLeft.acc[1], imuLeft.acc[2],
-//							imuLeft.mag[0], imuLeft.mag[1], imuLeft.mag[2]);
-//		float roll, pitch, yaw;
-//		eulerAngles(q_est, &roll, &pitch, &yaw);
-		sprintf(buff, "oriL: %6.1f,%6.1f,%6.1f", imuLeft.roll, imuLeft.pitch,
-				imuLeft.yaw);
-		LCD_DrawString(0, 120, buff);
-//		sprintf(buff, "oriR: %6.2f,%6.2f,%6.2f", imuRight.roll, imuRight.pitch,
-//				imuRight.yaw);
+//		sprintf(buff, "hit count: %3d %3d %3d ", hits, count, imuLeft.downCount);
 //		LCD_DrawString(0, 140, buff);
-//		sprintf(buff, "acc: %6.2f", imuLeft.pitch_acc);
-//		LCD_DrawString(0, 160, buff);
-
-//		for (int i = 0; i < 6; i++)
-//			switch (states[i]) {
-//			case IMU_IDLE:
-//				LCD_DrawString(0, 180 + i * 16, "IDLE   ");
-//				break;
-//			case IMU_POS:
-//				LCD_DrawString(0, 180 + i * 16, "POS    ");
-//				break;
-//			case IMU_NEG:
-//				LCD_DrawString(0, 180 + i * 16, "NEG    ");
-//				break;
-//			case IMU_HIT_NP:
-//				LCD_DrawString(0, 180 + i * 16, "HIT_NP ");
-//				break;
-//			case IMU_HIT_PN:
-//				LCD_DrawString(0, 180 + i * 16, "HIT_PN ");
-//				break;
-//			case IMU_IDLE_NP:
-//				LCD_DrawString(0, 180 + i * 16, "IDLE_NP");
-//				break;
-//			case IMU_IDLE_PN:
-//				LCD_DrawString(0, 180 + i * 16, "IDLE_PN");
-//				break;
+//////		LCD_DrawFormattedString(0, 140, "count: %d", count);
+//		sprintf(buff, "accL: %6.2f,%6.2f,%6.2f", imuLeft.acc[0], imuLeft.acc[1],
+//				imuLeft.acc[2]);
+//		LCD_DrawString(0, 20, buff);
+//		sprintf(buff, "L%9.2f,%9.2f,%9.2f", imuLeft.gyro[0], imuLeft.gyro[1],
+//				imuLeft.gyro[2]);
+//		LCD_DrawString(0, 40, buff);
+////		sprintf(buff, "accR: %6.2f,%6.2f,%6.2f", imuRight.acc[0], imuRight.acc[1],
+////				imuRight.acc[2]);
+//////				imuLeft.last_tick);
+////		LCD_DrawString(0, 60, buff);
+////		sprintf(buff, "%R9.2f,%9.2f,%9.2f", imuRight.gyro[0], imuRight.gyro[1],
+////				imuRight.gyro[2]);
+////		LCD_DrawString(0, 80, buff);
 //
-//			};
-
-//		sprintf(buff, "acc : %6.2f,%6.2f,%6.2f", imuRight.acc[0], imuRight.acc[1], imuRight.acc[2]);
+////		LCD_DrawString(0, 60, buff);
+////		sprintf(buff, "%9.2f,%9.2f,%9.2f", imuLeft.gyro_offset[0], imuLeft.gyro_offset[1], imuLeft.gyro_offset[2]);
+////		LCD_DrawString(0, 80, buff);
+////		sprintf(buff, "mag : %6.0f,%6.0f,%6.0f", imuLeft.mag[0], imuLeft.mag[1], imuLeft.mag[2]);
+////		LCD_DrawString(0, 100, buff);
+//
+////		imu_filter(imuLeft.acc[0], imuLeft.acc[1], imuLeft.acc[2], imuLeft.gyro[0], imuLeft.gyro[1], imuLeft.gyro[2]);
+////		MahonyAHRSupdateIMU(imuLeft.gyro[0], imuLeft.gyro[1], imuLeft.gyro[2], imuLeft.acc[0], imuLeft.acc[1], imuLeft.acc[2]);
+////		MahonyAHRSupdate(imuLeft.gyro[0], imuLeft.gyro[1], imuLeft.gyro[2],
+////							imuLeft.acc[0], imuLeft.acc[1], imuLeft.acc[2],
+////							imuLeft.mag[0], imuLeft.mag[1], imuLeft.mag[2]);
+////		float roll, pitch, yaw;
+////		eulerAngles(q_est, &roll, &pitch, &yaw);
+//		sprintf(buff, "oriL: %6.1f,%6.1f,%6.1f", imuLeft.roll, imuLeft.pitch,
+//				imuLeft.yaw);
 //		LCD_DrawString(0, 120, buff);
-//		sprintf(buff, "gyro: %6.2f,%6.2f,%6.2f", imuRight.gyro[0], imuRight.gyro[1], imuRight.gyro[2]);
-//		LCD_DrawString(0, 140, buff);
-//		sprintf(buff, "mag : %6.2f,%6.2f,%6.2f", imuRight.mag[0], imuRight.mag[1], imuRight.mag[2]);
-//		LCD_DrawString(0, 160, buff);
+////		sprintf(buff, "oriR: %6.2f,%6.2f,%6.2f", imuRight.roll, imuRight.pitch,
+////				imuRight.yaw);
+////		LCD_DrawString(0, 140, buff);
+////		sprintf(buff, "acc: %6.2f", imuLeft.pitch_acc);
+////		LCD_DrawString(0, 160, buff);
 //
+////		for (int i = 0; i < 6; i++)
+////			switch (states[i]) {
+////			case IMU_IDLE:
+////				LCD_DrawString(0, 180 + i * 16, "IDLE   ");
+////				break;
+////			case IMU_POS:
+////				LCD_DrawString(0, 180 + i * 16, "POS    ");
+////				break;
+////			case IMU_NEG:
+////				LCD_DrawString(0, 180 + i * 16, "NEG    ");
+////				break;
+////			case IMU_HIT_NP:
+////				LCD_DrawString(0, 180 + i * 16, "HIT_NP ");
+////				break;
+////			case IMU_HIT_PN:
+////				LCD_DrawString(0, 180 + i * 16, "HIT_PN ");
+////				break;
+////			case IMU_IDLE_NP:
+////				LCD_DrawString(0, 180 + i * 16, "IDLE_NP");
+////				break;
+////			case IMU_IDLE_PN:
+////				LCD_DrawString(0, 180 + i * 16, "IDLE_PN");
+////				break;
+////
+////			};
+//
+////		sprintf(buff, "acc : %6.2f,%6.2f,%6.2f", imuRight.acc[0], imuRight.acc[1], imuRight.acc[2]);
+////		LCD_DrawString(0, 120, buff);
+////		sprintf(buff, "gyro: %6.2f,%6.2f,%6.2f", imuRight.gyro[0], imuRight.gyro[1], imuRight.gyro[2]);
+////		LCD_DrawString(0, 140, buff);
+////		sprintf(buff, "mag : %6.2f,%6.2f,%6.2f", imuRight.mag[0], imuRight.mag[1], imuRight.mag[2]);
+////		LCD_DrawString(0, 160, buff);
+////
+
+		if (HAL_GetTick() - gyro_disp_tick > 100) {
+			sprintf(buff, "%4.0f, %4.0f", imuLeft.yaw, imuLeft.acc[2]);
+			LCD_DrawString(0, 224, buff);
+			gyro_disp_tick = HAL_GetTick();
+		}
 
 		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_6) == GPIO_PIN_SET) {
 			if (PC6 == BTN_UP) {
 				PC6 = BTN_DOWN;
 				initIMUStruct(&imuLeft);
-				imu_setActive(&imuLeft);
-				MPU9250_Init();
+//				imu_setActive(&imuLeft);
+//				MPU9250_Init();
 			}
 		} else {
 			PC6 = BTN_UP;
@@ -507,7 +518,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	} else if (htim->Instance == TIM3) {
 #ifdef USEIMU
 		updateIMUs();
-		count++;
+//		count++;
 #endif
 	}
 	__enable_irq();
