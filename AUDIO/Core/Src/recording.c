@@ -36,11 +36,11 @@ inline int writeRecording(uint16_t len) {
 	if (recState == RecordingOff) return -1;
 	uint32_t bytesWritten;
 	FRESULT res;
-//	while (recStruct.toWrite != recStruct.toRead) {
-//		res = f_write(&(recStruct.file), recStruct.buff[recStruct.toRead], 500 * 2, &bytesWritten);
-//		recStruct.head.dataChunkLength += bytesWritten;
-//		recStruct.toRead = (recStruct.toRead + 1) % 5;
-//	}
+	while (recStruct.toWrite != recStruct.toRead) {
+		res = f_write(&(recStruct.file), recStruct.buff[recStruct.toRead], 500 * 2, &bytesWritten);
+		recStruct.head.dataChunkLength += bytesWritten;
+		recStruct.toRead = (recStruct.toRead + 1) % 5;
+	}
 	return res;
 }
 

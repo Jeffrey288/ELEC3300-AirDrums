@@ -191,7 +191,6 @@ inline void precomputeMix() {
 			drumMix(sample_sum);
 			*(audioLeft.curr++) = (-sample_sum + 32768);
 		}
-		recStruct.toRead += 1;
 	} else {
 		for (int i = 0; i < AUDIO_PRECOMP; i++) {
 			recStruct.buff[recStruct.toWrite][i]= 0;
@@ -199,7 +198,7 @@ inline void precomputeMix() {
 				recStruct.buff[recStruct.toWrite][i] += readSample(&sampleFile) / 4;
 			drumMix(recBuff[i]);
 			*(audioLeft.curr++) = (-recStruct.buff[recStruct.toWrite][i] + 32768);
-			recStruct.buff[recStruct.toWrite][i] = (recStruct.buff[recStruct.toWrite][i] >> 8) | (recStruct.buff[recStruct.toWrite][i] << 8);
+//			recStruct.buff[recStruct.toWrite][i] = (recStruct.buff[recStruct.toWrite][i] >> 8) | (recStruct.buff[recStruct.toWrite][i] << 8);
 		}
 		recStruct.toWrite = (recStruct.toWrite + 1) % 5;
 	}
