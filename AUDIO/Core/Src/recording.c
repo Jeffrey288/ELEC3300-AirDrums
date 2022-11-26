@@ -9,6 +9,7 @@ RecordingState recState = RecordingOff;
 // static RecordingState recState = RecordingOff;
 
 int startRecording() {
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET); // turns on the red light
 	if (recState == RecordingOn) return -1;
 	recState = RecordingOn;
 	char buff[30];
@@ -44,6 +45,7 @@ inline int writeRecording() {
 }
 
 int endRecording() {
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET); // turns off the red light
 	if (recState == RecordingOff) return -1;
 	recState = RecordingOff;
 	f_rewind(&(recStruct.file));
