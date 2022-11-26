@@ -32,7 +32,7 @@
  */
 
 typedef struct {
-	uint8_t raw[BUFF_SIZE];
+	uint8_t *raw;
 	uint8_t *first;			// pointer to the start of the array, i.e. raw
 	uint8_t *curr;			// pointer to the currently read element
 	uint16_t buffSize;		// stores how much data is left unread

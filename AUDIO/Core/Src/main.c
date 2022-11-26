@@ -431,6 +431,10 @@ int main(void)
 
 		updateButtons();
 		InterfaceHandler();
+		writeRecording(500);
+
+		sprintf(buff, "%d, %d, %d", recStruct.toWrite, recStruct.toRead, recState);
+		LCD_DrawString(220, 224, buff);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

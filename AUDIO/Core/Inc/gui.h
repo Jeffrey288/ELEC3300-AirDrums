@@ -310,10 +310,13 @@ static void MusicPlayerInterfaceSelector(int xpos, int ypos, short mode) {
 		// change the pause button to a play button
 		LCD_Clear(20, 80, 60, 60, WHITE);
 		imagebuilder(20, 80, 57, 57, PlayButton); // draw the play button
+		endRecording();
 	} else if (boundarychecker(xpos, ypos, 140, 200, 80, 140)) { // if the recording button is pressed
 		// to be implemented
-		if (recState == RecordingOn) recState = RecordingOff;
-		else /* recState == RecordingOff */recState = RecordingOn;
+//		if (recState == RecordingOn) recState = RecordingOff;
+//		else /* recState == RecordingOff */recState = RecordingOn;
+		recState = RecordingOn;
+		startRecording();
 	} else if (boundarychecker(xpos, ypos, 30, 300, 180, 200)) {// Music Drag Timeline
 		float RelativeMusicPosition = (xpos - 30) / 270.0;
 //		sprintf(buff, "diu %.3f", RelativeMusicPosition);

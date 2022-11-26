@@ -85,7 +85,7 @@ typedef struct {
 	// UNUSED, the DMA will always be on for now
 } AudioChannel;
 extern AudioChannel audioLeft;
-extern AudioChannel audioRight; // unused for now
+//extern AudioChannel audioRight; // unused for now
 
 extern DAC_HandleTypeDef hdac;
 extern TIM_HandleTypeDef htim2;

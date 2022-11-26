@@ -10,11 +10,17 @@ typedef enum {
 	RecordingOn,
 } RecordingState;
 
-static RecordingState recState = RecordingOff;
+extern RecordingState recState;
 
 typedef struct {
+
 	WavHeader head;
 	FIL file;
+
+	int16_t buff[5][500];
+	int16_t toWrite;
+	int16_t toRead;
+
 } RecStruct;
 
 extern RecStruct recStruct;
