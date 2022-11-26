@@ -181,6 +181,7 @@ inline void audioChannelInit() {
 }
 
 int16_t sample_sum;
+int16_t* rec_buff_ptr;
 int16_t playFlag = 0;
 inline void precomputeMix() {
 	if (recState == RecordingOff) {
@@ -192,17 +193,17 @@ inline void precomputeMix() {
 			*(audioLeft.curr++) = (-sample_sum + 32768);
 		}
 	} else {
+		rec_buff_ptr = recStruct.buff[recStruct.toWrite];
 		for (int i = 0; i < AUDIO_PRECOMP; i++) {
-			recStruct.buff[recStruct.toWrite][i]= 0;
+			*rec_buff_ptr = 0;
 			if (musicState == MUSIC_PLAYING)
-				recStruct.buff[recStruct.toWrite][i] += readSample(&sampleFile) / 4;
-			drumMix(recBuff[i]);
-			*(audioLeft.curr++) = (-recStruct.buff[recStruct.toWrite][i] + 32768);
-//			recStruct.buff[recStruct.toWrite][i] = (recStruct.buff[recStruct.toWrite][i] >> 8) | (recStruct.buff[recStruct.toWrite][i] << 8);
+				*rec_buff_ptr += readSample(&sampleFile) / 4;
+			drumMix(*rec_buff_ptr);
+			*(audioLeft.curr++) = (-(*(rec_buff_ptr++)) + 32768);
 		}
 		recStruct.toWrite = (recStruct.toWrite + 1) % 5;
 	}
-//	writeRecording(AUDIO_PRECOMP);
+
 	audioLeft.toWrite++;
 	if (audioLeft.toWrite >= AUDIO_BLOCKS) {
 		audioLeft.curr = audioLeft.first;

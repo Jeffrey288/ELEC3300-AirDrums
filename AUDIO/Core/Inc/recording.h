@@ -27,7 +27,7 @@ extern RecStruct recStruct;
 extern int16_t recBuff[500];
 
 int startRecording();
-extern inline int writeRecording(uint16_t len);
+extern inline int writeRecording();
 int endRecording();
 
 #endif

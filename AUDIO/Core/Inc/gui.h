@@ -315,7 +315,6 @@ static void MusicPlayerInterfaceSelector(int xpos, int ypos, short mode) {
 		// to be implemented
 //		if (recState == RecordingOn) recState = RecordingOff;
 //		else /* recState == RecordingOff */recState = RecordingOn;
-		recState = RecordingOn;
 		startRecording();
 	} else if (boundarychecker(xpos, ypos, 30, 300, 180, 200)) {// Music Drag Timeline
 		float RelativeMusicPosition = (xpos - 30) / 270.0;

@@ -9,8 +9,7 @@ RecordingState recState = RecordingOff;
 // static RecordingState recState = RecordingOff;
 
 int startRecording() {
-//	if (recState == RecordingOn) return -1;
-	LCD_DrawString(0, 0, "Hey, i'm recording here");
+	if (recState == RecordingOn) return -1;
 	recState = RecordingOn;
 	char buff[30];
 	FILINFO fno;
@@ -32,7 +31,7 @@ int startRecording() {
 	return -1;
 }
 
-inline int writeRecording(uint16_t len) {
+inline int writeRecording() {
 	if (recState == RecordingOff) return -1;
 	uint32_t bytesWritten;
 	FRESULT res;
@@ -45,8 +44,7 @@ inline int writeRecording(uint16_t len) {
 }
 
 int endRecording() {
-//	if (recState == RecordingOff) return -1;
-	LCD_DrawString(0, 0, "Hey, i'm NOT recording here");
+	if (recState == RecordingOff) return -1;
 	recState = RecordingOff;
 	f_rewind(&(recStruct.file));
 	uint32_t bytesWritten;

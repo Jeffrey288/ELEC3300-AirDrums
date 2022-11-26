@@ -769,6 +769,7 @@ uint8_t XPT2046_TouchDetect(void) {
 		break;
 
 	case XPT2046_STATE_WAITING:
+
 		if (XPT2046_PENIRQ_Read() == XPT2046_PENIRQ_ActiveLevel) {
 			i++;
 			//�ȴ�ʱ�������ֵ����Ϊ����������
