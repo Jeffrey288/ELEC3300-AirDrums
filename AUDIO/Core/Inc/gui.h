@@ -330,6 +330,7 @@ static void MusicPlayerInterface(short mode) { // Draws the interface for the mu
 	imagebuilder(20, 80, 57, 57, PlayButton);
 	imagebuilder(80, 80, 57, 56, StopButton);
 	imagebuilder(140, 80, 56, 57, Recording);
+	imagebuilder(250, 130, 31, 28, Return);
 	LCD_DrawString(25, 40, musicFilenames[currentfile]);
 	MusicTimeline(0, 1);
 }
@@ -341,6 +342,8 @@ static void MainMenuInterface() {
 	LCD_DrawString(120, 120, "DrumPractice");
 	imagebuilder(215, 20, 99, 98, Metronome);
 	LCD_DrawString(230, 120, "Metronome");
+	//imagebuilder(250, 140, 31, 28, Return);
+
 }
 
 static void metronome(int BPM) {
@@ -378,12 +381,14 @@ static void DrumPratice() {
  * 	Important General Functions
  */
 
+//imagebuilder(250, 130, 31, 28, Return);
+
 // Whenever touchscreen is pressed, this function is run
 static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
-//	if ((xpos > 260) && (ypos > 200) // this can be replaced by a physical button
-//			&& (!GUIEMPTYSTACK(GUISTACK))) {
-//		GUIBACKWARD(GUISTACK);
-//	} else {
+	if (boundarychecker(xpos, ypos, 240, 320, 120, 200) // this can be replaced by a physical button
+			&& (!GUIEMPTYSTACK(GUISTACK))&&((currentinterface != GUI_MainMenu))) {
+		GUIBACKWARD(GUISTACK);
+	} else {
 		if (currentinterface == GUI_MainMenu) { // in the main menu, choose the different modes
 			if (boundarychecker(xpos, ypos, 0, 110, 0, 120)) { // Mainmenu --> MusicPlayer
 				GUIFORWARD(GUI_SongSelection, GUISTACK);
@@ -412,7 +417,7 @@ static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
 		//			  }
 		//		  }
 
-//	}
+	}
 }
 
 // Displays the interface, will only run once whenever the touchscreen is pressed
@@ -426,7 +431,7 @@ static void DisplayInterface(int currentinterface) {
 	case GUI_SongSelection: // MusicPlayer
 		LCD_Clear(0, 0, 320, 240, WHITE);
 		SongSelectionInterface(musicFileNum, musicFilenames, 1); // Draws the files
-		imagebuilder(260, 190, 31, 28, Return);
+		imagebuilder(250, 130, 31, 28, Return);
 		break;
 	case GUI_SongPlayer: // MusicPlayer-DrumPlay
 		LCD_Clear(0, 0, 320, 240, WHITE);
