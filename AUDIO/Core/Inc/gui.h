@@ -19,8 +19,19 @@
 #include "Return.h"
 #include "WavImage.h"
 #include "recording.h"
+#include "StopRecording.h"
+#include "60.h"
+#include "120.h"
+#include "150.h"
+#include "BPM.h"
 
 #include "audio.h"
+
+typedef enum {
+	BPM_60 = 0,
+	BPM_120,
+	BPM_150,
+};
 
 typedef enum {
 	GUI_MainMenu = 0,
@@ -46,6 +57,7 @@ static int posinfo[2] = { 0, 0 };
 static short PLAYPAUSESTATUS = 0;
 static short starttimeline = 0;
 static int MusicSpectrumArray[30] = { 0 };
+static int BPMCounter = 0;
 
 static int RGB = 0x0000;
 static short upper = 0x0010;
@@ -310,12 +322,22 @@ static void MusicPlayerInterfaceSelector(int xpos, int ypos, short mode) {
 		// change the pause button to a play button
 		LCD_Clear(20, 80, 60, 60, WHITE);
 		imagebuilder(20, 80, 57, 57, PlayButton); // draw the play button
-		endRecording();
 	} else if (boundarychecker(xpos, ypos, 140, 200, 80, 140)) { // if the recording button is pressed
 		// to be implemented
 //		if (recState == RecordingOn) recState = RecordingOff;
 //		else /* recState == RecordingOff */recState = RecordingOn;
-		startRecording();
+
+		if (recState == RecordingOn) // if recording is on and the stop button is clicked, draw the start button
+		{
+			endRecording();
+			imagebuilder(140, 80, 56, 57, Recording);
+		}
+		else if (recState == RecordingOff) // if recording is off, draw the ...
+		{
+			startRecording();
+			imagebuilder(140, 80, 57, 57, StopRecording);
+		}
+
 	} else if (boundarychecker(xpos, ypos, 30, 300, 180, 200)) {// Music Drag Timeline
 		float RelativeMusicPosition = (xpos - 30) / 270.0;
 //		sprintf(buff, "diu %.3f", RelativeMusicPosition);
@@ -346,8 +368,28 @@ static void MainMenuInterface() {
 
 }
 
-static void metronome(int BPM) {
+static void metronome(int BPMnum) {
 //	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+
+	switch(BPMnum%3)
+	{
+	case BPM_60:
+		LCD_Clear(110,50,210,155,WHITE);
+		imagebuilder(120,50,132,85,D60);
+		break;
+	case BPM_120:
+		LCD_Clear(110,50,210,155,WHITE);
+		imagebuilder(120,50,198,85,D120);
+		break;
+	case BPM_150:
+		LCD_Clear(110,50,210,155,WHITE);
+		imagebuilder(120,50,184,85,D150);
+		break;
+	}
+
+
+
+
 }
 
 static void DrumPratice() {
@@ -388,6 +430,8 @@ static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
 	if (boundarychecker(xpos, ypos, 240, 320, 120, 200) // this can be replaced by a physical button
 			&& (!GUIEMPTYSTACK(GUISTACK))&&((currentinterface != GUI_MainMenu))) {
 		GUIBACKWARD(GUISTACK);
+		if (currentinterface == GUI_SongPlayer)
+			endRecording();
 	} else {
 		if (currentinterface == GUI_MainMenu) { // in the main menu, choose the different modes
 			if (boundarychecker(xpos, ypos, 0, 110, 0, 120)) { // Mainmenu --> MusicPlayer
@@ -403,6 +447,10 @@ static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
 			setMusic(musicFilenames[currentfile]);
 		} else if (currentinterface == GUI_SongPlayer) {
 			MusicPlayerInterfaceSelector(xpos, ypos, 0);
+		} else if (currentinterface == GUI_Metronome) {
+			metronome(BPMCounter);
+			BPMCounter++;
+
 		}
 
 		//		  else if (currentinterface ==2)
@@ -444,8 +492,11 @@ static void DisplayInterface(int currentinterface) {
 		break;
 	case GUI_Metronome:
 		LCD_Clear(0, 0, 320, 240, WHITE);
+		//imagebuilder(50, 50, 195, 198, MetronomeCircle);
+		imagebuilder(10,50,94,85,BPM);
 		imagebuilder(260, 210, 31, 28, Return);
-		metronome(10);
+		metronome(BPMCounter);
+		BPMCounter++;
 		break;
 	}
 
