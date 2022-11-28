@@ -429,6 +429,33 @@ void LCD_DrawString ( uint16_t usC, uint16_t usP, const char * pStr )
 	
 }
 
+void _tft_printbigc(short x, short y, const char chr, short w, short h) {
+    LCD_OpenWindow(x,y,w,h);
+    LCD_Write_Cmd ( CMD_SetPixel );
+	for (int r = 0; r < h; r++) {
+		int rr = (r + 0.5) / h * 16;
+		uint8_t temp = ucAscii_1608[chr - ' '][rr];
+		for (int c = 0; c < w; c++) {
+			int cc = (c + 0.5) / w * 8;
+			LCD_Write_Data(((temp >> (cc)) & 0x01) ? BLACK : WHITE);
+		}
+	}
+
+}
+
+void _tft_printbigs(short x, short y, const char *str, short w, short h) {
+    int counter = 0;
+    while (*str != '\0') {
+        _tft_printbigc(x + w*(counter++), y, *(str++), w, h);
+    }
+}
+
+void tft_printbigs(short x, short y, const char *str, float scale) {
+    int w = scale * 8;
+    int h = scale * 16;
+    _tft_printbigs(x, y, str, w, h);
+}
+
 
 //Task 2
 void LCD_DrawDot(uint16_t usCOLUMN, uint16_t usPAGE, uint16_t usColor)	

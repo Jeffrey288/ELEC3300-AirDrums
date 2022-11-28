@@ -31,6 +31,11 @@ typedef enum {
 	BPM_60 = 0,
 	BPM_120,
 	BPM_150,
+	BPM_180,
+	BPM_240,
+	BPM_320,
+	BPM_1200,
+	BPM_NUM,
 };
 
 typedef enum {
@@ -368,27 +373,50 @@ static void MainMenuInterface() {
 
 }
 
-static void metronome(int BPMnum) {
+static void MetronomeInterface(int BPMnum) {
 //	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
-	switch(BPMnum%3)
+	TIM1->PSC = 72000000/1200 - 1;
+	TIM1->CNT = 0;
+	switch(BPMnum)
 	{
 	case BPM_60:
+		TIM1->ARR = 1200.0/1.0 - 1;
 		LCD_Clear(110,50,210,155,WHITE);
-		imagebuilder(120,50,132,85,D60);
+		tft_printbigs(110, 50, "60", 6.0);
 		break;
 	case BPM_120:
+		TIM1->ARR = 1200.0/2.0 - 1;
 		LCD_Clear(110,50,210,155,WHITE);
-		imagebuilder(120,50,198,85,D120);
+		tft_printbigs(110, 50, "120", 6.0);
 		break;
 	case BPM_150:
+		TIM1->ARR = 1200.0/2.5 - 1;
 		LCD_Clear(110,50,210,155,WHITE);
-		imagebuilder(120,50,184,85,D150);
+		tft_printbigs(110, 50, "150", 6.0);
+		break;
+	case BPM_180:
+		TIM1->ARR = 1200.0/3.0 - 1;
+		LCD_Clear(110,50,210,155,WHITE);
+		tft_printbigs(110, 50, "180", 6.0);
+		break;
+	case BPM_240:
+		TIM1->ARR = 1200.0/4.0 - 1;
+		LCD_Clear(110,50,210,155,WHITE);
+		tft_printbigs(110, 50, "240", 6.0);
+		break;
+	case BPM_320:
+		TIM1->ARR = 1200.0/5.3333344 - 1;
+		LCD_Clear(110,50,210,155,WHITE);
+		tft_printbigs(110, 50, "320", 6.0);
+		break;
+	case BPM_1200:
+		TIM1->ARR = 1200/10 - 1;
+		LCD_Clear(110,50,210,155,WHITE);
+		tft_printbigs(110, 50, "1200", 6.0);
 		break;
 	}
-
-
-
+	TIM1->CCR1 = (TIM1->ARR * 0.5);
 
 }
 
@@ -432,6 +460,8 @@ static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
 		GUIBACKWARD(GUISTACK);
 		if (currentinterface == GUI_SongPlayer)
 			endRecording();
+		if (currentinterface == GUI_Metronome)
+			HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
 	} else {
 		if (currentinterface == GUI_MainMenu) { // in the main menu, choose the different modes
 			if (boundarychecker(xpos, ypos, 0, 110, 0, 120)) { // Mainmenu --> MusicPlayer
@@ -448,9 +478,8 @@ static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
 		} else if (currentinterface == GUI_SongPlayer) {
 			MusicPlayerInterfaceSelector(xpos, ypos, 0);
 		} else if (currentinterface == GUI_Metronome) {
-			metronome(BPMCounter);
-			BPMCounter++;
-
+			MetronomeInterface(BPMCounter); // Click anywhere is OK
+			BPMCounter = (BPMCounter + 1) % BPM_NUM;
 		}
 
 		//		  else if (currentinterface ==2)
@@ -495,8 +524,9 @@ static void DisplayInterface(int currentinterface) {
 		//imagebuilder(50, 50, 195, 198, MetronomeCircle);
 		imagebuilder(10,50,94,85,BPM);
 		imagebuilder(260, 210, 31, 28, Return);
-		metronome(BPMCounter);
-		BPMCounter++;
+		HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+		MetronomeInterface(BPMCounter);
+		BPMCounter = (BPMCounter + 1) % BPM_NUM;
 		break;
 	}
 
