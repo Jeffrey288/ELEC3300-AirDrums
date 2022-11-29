@@ -145,27 +145,38 @@ static inline short boundarychecker(int inputx, int inputy, int lowlimitx,
  * Specific GUI Functions
  */
 
-static void VolumeControlInterface() {
+static void VolumeControlHandler() {
 	static int volumecurrentstatus = -1; // will only init the variable once,
 	static int volumeprevstatus = -1; // but the value of volumeprevstatus will
 	// stay the same even after finish function
+	static int CompressedPreValue = -1;
 
-	HAL_ADC_Start(&hadc1);
-	HAL_ADC_PollForConversion(&hadc1, 1000);
-	//uint32_t abc = HAL_ADC_GetValue(&hadc1);
-	char xposition[4];
-	sprintf(xposition, "%04d", HAL_ADC_GetValue(&hadc1));
-	LCD_DrawString(200, 20, "ADC");
-	LCD_DrawString(240, 20, xposition);
+	uint32_t CompressedValue= HAL_ADC_GetValue(&hadc1);
+	uint32_t OriginalValue  = HAL_ADC_GetValue(&hadc2);
 
-	volumecurrentstatus = VolumeStatus(HAL_ADC_GetValue(&hadc1), 4500);
-	char yposition[1];
-	sprintf(yposition, "%01d", volumecurrentstatus);
-	LCD_DrawString(200, 40, "index");
-	LCD_DrawString(240, 40, yposition);
+//	char xposition[4];
+//	char yposition[4];
+//	sprintf(xposition, "%04d", OriginalValue);
+//	sprintf(yposition, "%04d", CompressedValue);
+//	LCD_DrawString(200, 20, "ADC");
+//	LCD_DrawString(240, 20, xposition);
+//	LCD_DrawString(240, 40, yposition);
+
+	if ((CompressedValue -OriginalValue )> 500)
+	{
+		if (((CompressedValue-CompressedPreValue) > 200 ) ||((CompressedPreValue-CompressedValue) > 200 ))
+		{
+		CompressedPreValue = CompressedValue;
+		volumecurrentstatus = VolumeStatus(OriginalValue, CompressedValue);
+		}
+	}
+//	char zposition[4];
+//	sprintf(yposition, "%01d", volumecurrentstatus);
+//	LCD_DrawString(200, 80, "index");
+//	LCD_DrawString(240, 80, yposition);
 
 	if (volumecurrentstatus != volumeprevstatus) {
-		VolumeControl(240, 120, volumecurrentstatus);
+		VolumeControl(200, 80, volumecurrentstatus);
 		volumeprevstatus = volumecurrentstatus;
 	}
 }
@@ -548,6 +559,7 @@ static void DisplayInterface(int currentinterface) {
 
 // Will always run in the main while loop
 static uint32_t gui_last_tick = 0;
+static uint32_t vol_last_tick = 0;
 static void InterfaceHandler() {
 	switch (currentinterface) {
 
@@ -561,6 +573,12 @@ static void InterfaceHandler() {
 
 		// note: no need to call musicUpdate or drumUpdate here
 		// it will be called by the main.c loop
+
+		if (HAL_GetTick() - vol_last_tick > 200) {
+			vol_last_tick = HAL_GetTick();
+			// update the volume every 200ms
+			VolumeControlHandler();
+		}
 
 		break;
 	}

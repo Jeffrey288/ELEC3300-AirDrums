@@ -836,17 +836,21 @@ void volumecontrol(uint8_t data, uint8_t limit) {
 
 }
 
-int VolumeStatus(int input, int limit) {
-	if (input > 3600)
-		return 5;
-	else if (input > 2700)
-		return 4;
-	else if (input > 1800)
-		return 3;
-	else if (input > 900)
-		return 2;
-	else
+int VolumeStatus(uint32_t input, uint32_t limit) {
+	 int factor = (limit - input) ;
+
+	if (factor > 1800)
+		return 0;
+	else if (factor > 1450)
 		return 1;
+	else if (factor > 1100)
+		return 2;
+	else if (factor > 750 )
+		return 3;
+	else if (factor> 400 )
+		return 4;
+	else if (factor > -500)
+		return 5;
 
 }
 
@@ -864,15 +868,11 @@ void VolumeControl(int posX, int posY, int percentageindex) {
 		ILI9341_DrawRectangle(posX + 15, posY - 10, 10, 30, 10);
 	case 1:
 		ILI9341_DrawRectangle(posX, posY, 10, 20, 10);
-		//*current = percentageindex;
+		break;
+	case 0:
+		LCD_Clear(posX, posY - 60, 120, 80, WHITE);
+		break;
 
-		//HAL_Delay(1000);
-
-//	ILI9341_DrawRectangle( posX, posY, 10, 20,10);
-//	ILI9341_DrawRectangle( posX+15, posY-10, 10, 30,10);
-//	ILI9341_DrawRectangle( posX+30, posY-20, 10, 40,10);
-//	ILI9341_DrawRectangle( posX+45, posY-30, 10, 50,10);
-//	ILI9341_DrawRectangle( posX+60, posY-40, 10, 60,10);
 	}
 }
 
