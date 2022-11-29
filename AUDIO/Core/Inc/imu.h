@@ -86,6 +86,8 @@ static void imu_calibrateGyro(imuStruct* p) {
 }
 
 extern void inline updateIMUs();
+extern void inline updateIMUs_T();
 extern void inline updateIMU(imuStruct*);
+extern void inline updateIMU_T(imuStruct*);
 void initIMUStructs();
 void initIMUStruct(imuStruct*);

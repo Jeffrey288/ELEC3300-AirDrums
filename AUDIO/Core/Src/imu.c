@@ -175,7 +175,58 @@ void inline updateIMU(imuStruct *imu) {
 //	if (imu->acc[2] > 30) imu->accelFlag = 0;
 }
 
+void inline updateIMU_T(imuStruct *imu) {
+
+	imu_setActive(imu);
+
+	MPU9250_GetData(imu->raw, imu->raw + 6, imu->raw + 3); // raw is acc, gyro, mag
+	imu->acc[2] = imu->raw[2] * 0.00479003906f;
+	imu->gyro[2] = (imu->raw[5] - imu->gyro_offset[2]) * 0.00106422515f;
+	imu->yaw += imu->gyro[2] * (1.0 / IMU_REFRESH_RATE) * 180 / PI;
+	if (imu->yaw > 80) imu->yaw = 80;
+	else if (imu->yaw < -80) imu->yaw = -80;
+
+//	switch (imu->state) {
+//	case IMU_IDLE:
+//	case IMU_IDLE_NP:
+//		imu->accelFlag = 0;
+//		if (imu->acc[2] < -22) {
+//				imu->state = IMU_NEG;
+//				imu->hit_tick = HAL_GetTick();
+//		} else if (HAL_GetTick() - imu->hit_tick > 70) { // effectively a cooldown to prevent a hit being detected in the opposite direciton
+//			imu->state = IMU_IDLE;
+//		}
+//		break;
+//
+//	case IMU_NEG:
+//		if (HAL_GetTick() - imu->hit_tick < 150) {
+//			if (imu->acc[2] > 10) {
+//				imu->accelFlag = 1;
+//				imu->state = IMU_HIT_NP;
+//				imu->hit_tick = HAL_GetTick();
+//			}
+//		} else {
+//			imu->state = IMU_IDLE;
+//		}
+//		break;
+//	case IMU_HIT_NP:
+//		if (imu->acc[2] > 10) {
+//			imu->hit_tick = HAL_GetTick();
+//		} else {
+//			if (HAL_GetTick() - imu->hit_tick > 40) {
+//				imu->state = IMU_IDLE_NP;
+//			}
+//		}
+//		break;
+//	}
+}
+
 void inline updateIMUs() {
 	for (int i = 0; i < 2; i++) updateIMU(imuStructs[i]);
+
+}
+
+void inline updateIMUs_T() {
+	for (int i = 0; i < 2; i++) updateIMU_T(imuStructs[i]);
 
 }
