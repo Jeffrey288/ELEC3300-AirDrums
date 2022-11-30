@@ -206,7 +206,7 @@ static void SongSelectionInterface(int page, char filename[][15],
 			counter++;
 		}
 	}
-	ILI9341_DrawCross(50, 50);
+	LCD_DrawArrow(250,150,30,30,GREEN,10);
 
 }
 

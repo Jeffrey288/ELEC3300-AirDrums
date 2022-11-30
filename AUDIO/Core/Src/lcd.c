@@ -524,11 +524,54 @@ void LCD_DrawCircle ( uint16_t usX_Center, uint16_t usY_Center, uint16_t usRadiu
 	LCD_Write_Cmd(CMD_SetPixel);
 	for (int i = 0; i<limit;i++) {
 		for (int j = 0; j<limit; j++) {
-			float distance = (startx+i)*(startx+i) + (starty+j)*(starty+j);
+			float distance = (startx-usX_Center+i)*(startx-usX_Center+i) + (starty-usY_Center+j)*(starty-usY_Center+j);
 			if (distance < (usRadius*usRadius))
-				LCD_Write_Data(fillColor);
+				LCD_Write_Data(GREEN);
 			else
 				LCD_Write_Data(WHITE);
 		}
 	}
+}
+
+void LCD_DrawArrow (uint16_t startX, uint16_t startY, uint16_t length, uint16_t width,uint16_t fillColor, int thickness)
+{
+	LCD_OpenWindow(startX,startY,length,width);
+	LCD_Write_Cmd(CMD_SetPixel);
+
+
+	for (int j = startY; j<(startY+ width);j++)
+	{
+		int firstthickness = thickness;
+		uint16_t space = (length - j);
+		for (int i = startX; i<(startX+ (length/2)); i++)
+		{
+			if(space >0)
+			{
+				space--;
+				if (firstthickness>0)
+				{
+				firstthickness--;
+				LCD_Write_Data(WHITE);
+				}
+				continue;
+			}
+			LCD_Write_Data(GREEN);
+		}
+		uint16_t space2 = j;
+		for (int i = (startX + (length/2)); i<(startX+ length); i++)
+		{
+			if(space2>0)
+			{
+				space2--;
+				if ((space2-thickness)<0)
+				{
+				LCD_Write_Data(GREEN);
+				}
+				continue;
+			}
+			LCD_Write_Data(WHITE);
+		}
+	}
+
+
 }
