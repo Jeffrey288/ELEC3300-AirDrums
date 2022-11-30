@@ -180,7 +180,7 @@ static void VolumeControlInterface() {
 //	LCD_DrawString(240, 40, yposition);
 
 	if (volumecurrentstatus != volumeprevstatus) {
-		VolumeControl(240, 120, volumecurrentstatus);
+		VolumeControl(200, 80, volumecurrentstatus);
 		volumeprevstatus = volumecurrentstatus;
 	}
 }
@@ -493,7 +493,7 @@ static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
 		} else if (currentinterface == GUI_SongSelection) {
 
 			GUIFORWARD(GUI_SongPlayer, GUISTACK);
-			currentfile = FileSelector(xpos, ypos, FilePage, musicFileNum);
+			currentfile = FileSelector(xpos, ypos, 0, musicFileNum);
 			setMusic(musicFilenames[currentfile]);
 
 		} else if (currentinterface == GUI_SongPlayer) {
@@ -528,7 +528,7 @@ static void DisplayInterface(int currentinterface) {
 		break;
 	case GUI_SongSelection: // MusicPlayer
 		LCD_Clear(0, 0, 320, 240, WHITE);
-		SongSelectionInterface(musicFileNum, musicFilenames, 1); // Draws the files
+		SongSelectionInterface(0, musicFilenames, 1); // Draws the files
 		imagebuilder(250, 20, 31, 28, Return);
 		break;
 	case GUI_SongPlayer: // MusicPlayer-DrumPlay
@@ -586,8 +586,14 @@ static void InterfaceHandler() {
 			VolumeControlInterface();
 		}
 
-		// note: no need to call musicUpdate or drumUpdate here
-		// it will be called by the main.c loop
+//		// note: no need to call musicUpdate or drumUpdate here
+//		// it will be called by the main.c loop
+//
+//		if (HAL_GetTick() - vol_last_tick > 200) {
+//			vol_last_tick = HAL_GetTick();
+//			// update the volume every 200ms
+//			VolumeControlHandler();
+//		}
 
 		break;
 	}

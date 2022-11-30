@@ -105,6 +105,7 @@ void display_success(int num, const char *msg) {
 char buff[31];
 int count = 0;
 int show_imu_data = 0;
+
 //extern int numActiveDrums;
 
 /* USER CODE END 0 */
@@ -147,11 +148,15 @@ int main(void)
   MX_TIM4_Init();
   MX_SPI1_Init();
   MX_TIM3_Init();
-  MX_ADC1_Init();
   MX_TIM1_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 
 #ifdef IVANCODE
+//  	HAL_ADCEx_Calibration_Start(&hadc1);
+//  	HAL_ADCEx_Calibration_Start(&hadc2);
+//  	HAL_ADC_Start(&hadc1);
+//  	HAL_ADC_Start(&hadc2);
 
 	ILI9341_Init();
 	ILI9341_GramScan(3);
