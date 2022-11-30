@@ -871,15 +871,15 @@ void VolumeControl(int posX, int posY, int percentageindex) {
 	LCD_Clear(posX, posY - 60, 120, 80, WHITE);
 	switch (percentageindex) {
 	case 5:
-		ILI9341_DrawRectangle(posX + 60, posY - 40, 10, 60, 10);
+		LCD_Clear(posX + 60, posY - 40, 10, 60, GREEN);
 	case 4:
-		ILI9341_DrawRectangle(posX + 45, posY - 30, 10, 50, 10);
+		LCD_Clear(posX + 45, posY - 30, 10, 50, GREEN);
 	case 3:
-		ILI9341_DrawRectangle(posX + 30, posY - 20, 10, 40, 10);
+		LCD_Clear(posX + 30, posY - 20, 10, 40, GREEN);
 	case 2:
-		ILI9341_DrawRectangle(posX + 15, posY - 10, 10, 30, 10);
+		LCD_Clear(posX + 15, posY - 10, 10, 30, GREEN);
 	case 1:
-		ILI9341_DrawRectangle(posX, posY, 10, 20, 10);
+		LCD_Clear(posX, posY, 10, 20, GREEN);
 		break;
 	case 0:
 		LCD_Clear(posX, posY - 60, 120, 80, WHITE);

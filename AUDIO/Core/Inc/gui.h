@@ -149,8 +149,8 @@ static void VolumeControlInterface() {
 	// stay the same even after finish function
 	static int CompressedPreValue = -1; // Store the previous value for comparsion
 
-	uint32_t CompressedValue = 0;
-	uint32_t OriginalValue = 0;
+	uint32_t CompressedValue = (dac1_buff[0] + dac1_buff[1])/2;
+	uint32_t OriginalValue = 2500;
 
 //	HAL_ADC_Start(&hadc1);
 //	HAL_ADC_PollForConversion(&hadc1, 1000);
@@ -174,7 +174,7 @@ static void VolumeControlInterface() {
 //	LCD_DrawString(240, 40, yposition);
 
 	if (volumecurrentstatus != volumeprevstatus) {
-		VolumeControl(200, 80, volumecurrentstatus);
+		VolumeControl(220, 120, volumecurrentstatus);
 		volumeprevstatus = volumecurrentstatus;
 	}
 }
@@ -444,28 +444,30 @@ static void MetronomeInterface(int BPMnum) {
 
 static void DrumPratice() {
 
-	imagebuilder(10, 180, 45, 46, Taiko);
-	int stepcounter = 0;
-	while (1) {
-		if ((XPT2046_TouchDetect() == TOUCH_PRESSED)) {
-			XPT2046_Touch(posinfo);
-			if (boundarychecker(posinfo[0], posinfo[1], 200, 325, 120, 240))
-				break;
-		}
-		if (stepcounter == 30) {
-			stepcounter = 0;
-		}
-		LCD_Clear(60, 120, 260, 120, WHITE);
-		for (int i = 2000; i > 0; i--) {
-			if ((i % 100) == 0) {
-				LCD_Clear(60 + (i * 20), 120, 10, 10, WHITE);
-				LCD_SetTextColor(GREEN);
-				ILI9341_DrawCircle(60 + (i * 20), 210, 10, WHITE);
-			}
-
-		}
-		stepcounter++;
-	}
+	imagebuilder(250, 20, 31, 28, Return);
+	imagebuilder(10, 20, 45, 46, Taiko);
+	tft_printbigs(0, 150, "To Be Continued", 3.0);
+//	int stepcounter = 0;
+//	while (1) {
+//		if ((XPT2046_TouchDetect() == TOUCH_PRESSED)) {
+//			XPT2046_Touch(posinfo);
+//			if (boundarychecker(posinfo[0], posinfo[1], 200, 325, 120, 240))
+//				break;
+//		}
+//		if (stepcounter == 30) {
+//			stepcounter = 0;
+//		}
+//		LCD_Clear(60, 120, 260, 120, WHITE);
+//		for (int i = 2000; i > 0; i--) {
+//			if ((i % 100) == 0) {
+//				LCD_Clear(60 + (i * 20), 120, 10, 10, WHITE);
+//				LCD_SetTextColor(GREEN);
+//				ILI9341_DrawCircle(60 + (i * 20), 210, 10, WHITE);
+//			}
+//
+//		}
+//		stepcounter++;
+//	}
 
 }
 
