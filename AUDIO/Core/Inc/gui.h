@@ -174,7 +174,7 @@ static void VolumeControlInterface() {
 //	LCD_DrawString(240, 40, yposition);
 
 	if (volumecurrentstatus != volumeprevstatus) {
-		VolumeControl(220, 120, volumecurrentstatus);
+		VolumeControl(210, 120, volumecurrentstatus);
 		volumeprevstatus = volumecurrentstatus;
 	}
 }
@@ -184,15 +184,15 @@ static void SongSelectionInterface(int page, char filename[][15], int filetype) 
 
 	// Print the arrow
 	if (page > 0) {
-		LCD_DrawDownArrow(250, 120, 30, 30, GREEN);
+		LCD_DrawDownArrow(230, 160, 60, 60, GREEN);
 	} else {
-		LCD_DrawDownArrow(250, 120, 30, 30, GREY);
+		LCD_DrawDownArrow(230, 160, 60, 60, GREY);
 	}
 
 	if (page < maxPages - 1) {
-		LCD_DrawUpArrow(250, 80, 30, 30, GREEN);
+		LCD_DrawUpArrow(230, 80, 60, 60, GREEN);
 	} else {
-		LCD_DrawUpArrow(250, 80, 30, 30, GREY);
+		LCD_DrawUpArrow(230, 80, 60, 60, GREY);
 	}
 
 	int counter = 4 * page;
@@ -206,6 +206,8 @@ static void SongSelectionInterface(int page, char filename[][15], int filetype) 
 			}
 		}
 	}
+
+	imagebuilder(250, 20, 31, 28, Return);
 
 }
 
@@ -444,30 +446,28 @@ static void MetronomeInterface(int BPMnum) {
 
 static void DrumPratice() {
 
-	imagebuilder(250, 20, 31, 28, Return);
-	imagebuilder(10, 20, 45, 46, Taiko);
-	tft_printbigs(0, 150, "To Be Continued", 3.0);
-//	int stepcounter = 0;
-//	while (1) {
-//		if ((XPT2046_TouchDetect() == TOUCH_PRESSED)) {
-//			XPT2046_Touch(posinfo);
-//			if (boundarychecker(posinfo[0], posinfo[1], 200, 325, 120, 240))
-//				break;
-//		}
-//		if (stepcounter == 30) {
-//			stepcounter = 0;
-//		}
-//		LCD_Clear(60, 120, 260, 120, WHITE);
-//		for (int i = 2000; i > 0; i--) {
-//			if ((i % 100) == 0) {
-//				LCD_Clear(60 + (i * 20), 120, 10, 10, WHITE);
-//				LCD_SetTextColor(GREEN);
-//				ILI9341_DrawCircle(60 + (i * 20), 210, 10, WHITE);
-//			}
-//
-//		}
-//		stepcounter++;
-//	}
+	imagebuilder(10, 180, 45, 46, Taiko);
+	int stepcounter = 0;
+	while (1) {
+		if ((XPT2046_TouchDetect() == TOUCH_PRESSED)) {
+			XPT2046_Touch(posinfo);
+			if (boundarychecker(posinfo[0], posinfo[1], 200, 325, 120, 240))
+				break;
+		}
+		if (stepcounter == 30) {
+			stepcounter = 0;
+		}
+		LCD_Clear(60, 120, 260, 120, WHITE);
+		for (int i = 2000; i > 0; i--) {
+			if ((i % 100) == 0) {
+				LCD_Clear(60 + (i * 20), 120, 10, 10, WHITE);
+				LCD_SetTextColor(GREEN);
+				ILI9341_DrawCircle(60 + (i * 20), 210, 10, WHITE);
+			}
+
+		}
+		stepcounter++;
+	}
 
 }
 
@@ -478,7 +478,7 @@ static void DrumPratice() {
 //imagebuilder(250, 130, 31, 28, Return);
 // Whenever touchscreen is pressed, this function is run
 static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
-	if (boundarychecker(xpos, ypos, 250, 281, 20, 48) // this can be replaced by a physical button
+	if (boundarychecker(xpos, ypos, 250-30, 281+30, 20-30, 48+30) // this can be replaced by a physical button
 	&& (!GUIEMPTYSTACK(GUISTACK)) && ((currentinterface != GUI_MainMenu))) {
 		GUIBACKWARD(GUISTACK);
 		if (currentinterface == GUI_SongPlayer) {
@@ -498,17 +498,17 @@ static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
 			}
 		} else if (currentinterface == GUI_SongSelection) {
 
-			int temp = FileInterfaceSelector(xpos, ypos, 0, musicFileNum);
+			int temp = FileInterfaceSelector(xpos, ypos, curFilePage, musicFileNum);
 			if (0 <= temp && temp < musicFileNum) {
 				currentfile = temp;
 				GUIFORWARD(GUI_SongPlayer, GUISTACK);
 				setMusic(musicFilenames[currentfile]);
-			} else if (boundarychecker(xpos, ypos, 250, 280, 120, 150)) { // down arrow
+			} else if (boundarychecker(xpos, ypos, 230, 290, 160, 220)) { // down arrow
 				if (curFilePage > 0) {
 					curFilePage--;
 					SongSelectionInterface(curFilePage, musicFilenames, 1);
 				}
-			} else if (boundarychecker(xpos, ypos, 250, 280, 80, 110)) {
+			} else if (boundarychecker(xpos, ypos, 230, 290, 80, 140)) {
 				if (curFilePage < maxPages - 1)  {
 					curFilePage++;
 					SongSelectionInterface(curFilePage, musicFilenames, 1);
@@ -550,7 +550,6 @@ static void DisplayInterface(int currentinterface) {
 		maxPages = (musicFileNum + 4 - 1) / 4;
 		LCD_Clear(0, 0, 320, 240, WHITE);
 		SongSelectionInterface(curFilePage, musicFilenames, 1); // Draws the files
-		imagebuilder(250, 20, 31, 28, Return);
 		break;
 	case GUI_SongPlayer: // MusicPlayer-DrumPlay
 		LCD_Clear(0, 0, 320, 240, WHITE);
