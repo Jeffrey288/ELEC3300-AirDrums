@@ -1,6 +1,7 @@
 #include "lcd.h"
 #include "ascii.h"	
 #include <math.h>
+#include <stdlib.h>
 #include <stdarg.h>
 
 void		LCD_REG_Config          ( void );
@@ -533,45 +534,71 @@ void LCD_DrawCircle ( uint16_t usX_Center, uint16_t usY_Center, uint16_t usRadiu
 	}
 }
 
-void LCD_DrawArrow (uint16_t startX, uint16_t startY, uint16_t length, uint16_t width,uint16_t fillColor, int thickness)
+
+
+void LCD_DrawUpArrow (uint16_t startX, uint16_t startY, uint16_t length, uint16_t width, uint16_t fillColor)
 {
 	LCD_OpenWindow(startX,startY,length,width);
 	LCD_Write_Cmd(CMD_SetPixel);
 
-
-	for (int j = startY; j<(startY+ width);j++)
-	{
-		int firstthickness = thickness;
-		uint16_t space = (length - j);
-		for (int i = startX; i<(startX+ (length/2)); i++)
-		{
-			if(space >0)
-			{
-				space--;
-				if (firstthickness>0)
-				{
-				firstthickness--;
+	for (int j = 0; j < length; j++) {
+		for (int i = 0; i < width; i++) {
+			if ((float)j/length*width/2 - 4 < abs(i - width/2) && abs(i - width/2) < (float)j/length*width/2 + 4) {
+				LCD_Write_Data(fillColor);
+			} else {
 				LCD_Write_Data(WHITE);
-				}
-				continue;
 			}
-			LCD_Write_Data(GREEN);
-		}
-		uint16_t space2 = j;
-		for (int i = (startX + (length/2)); i<(startX+ length); i++)
-		{
-			if(space2>0)
-			{
-				space2--;
-				if ((space2-thickness)<0)
-				{
-				LCD_Write_Data(GREEN);
-				}
-				continue;
-			}
-			LCD_Write_Data(WHITE);
 		}
 	}
-
-
 }
+
+void LCD_DrawDownArrow (uint16_t startX, uint16_t startY, uint16_t length, uint16_t width, uint16_t fillColor)
+{
+	LCD_OpenWindow(startX,startY,length,width);
+	LCD_Write_Cmd(CMD_SetPixel);
+
+	for (int j = length - 1; j >= 0; j--) {
+		for (int i = 0; i < width; i++) {
+			if ((float)j/length*width/2 - 4 < abs(i - width/2) && abs(i - width/2) < (float)j/length*width/2 + 4) {
+				LCD_Write_Data(fillColor);
+			} else {
+				LCD_Write_Data(WHITE);
+			}
+		}
+	}
+}
+
+
+//	for (int j = startY; j<(startY+width); j++)
+//	{
+//		int firstthickness = thickness;
+//		uint16_t space = (length - j);
+//		for (int i = startX; i<(startX+ (length/2)); i++)
+//		{
+//			if(space >0)
+//			{
+//				space--;
+//				if (firstthickness>0)
+//				{
+//				firstthickness--;
+//				LCD_Write_Data(WHITE);
+//				}
+//				continue;
+//			}
+//			LCD_Write_Data(GREEN);
+//		}
+//		uint16_t space2 = j;
+//		for (int i = (startX + (length/2)); i<(startX+ length); i++)
+//		{
+//			if(space2>0)
+//			{
+//				space2--;
+//				if ((space2-thickness)<0)
+//				{
+//				LCD_Write_Data(GREEN);
+//				}
+//				continue;
+//			}
+//			LCD_Write_Data(WHITE);
+//		}
+//	}

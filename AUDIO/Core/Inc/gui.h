@@ -28,14 +28,7 @@
 #include "audio.h"
 
 typedef enum {
-	BPM_60 = 0,
-	BPM_120,
-	BPM_150,
-	BPM_180,
-	BPM_240,
-	BPM_320,
-	BPM_1200,
-	BPM_NUM,
+	BPM_60 = 0, BPM_120, BPM_150, BPM_180, BPM_240, BPM_320, BPM_1200, BPM_NUM,
 };
 
 typedef enum {
@@ -64,7 +57,6 @@ static short starttimeline = 0;
 static int MusicSpectrumArray[30] = { 0 };
 static int BPMCounter = 0;
 
-
 static int RGB = 0x0000;
 static short upper = 0x0010;
 static short musicplayeron = 0;
@@ -75,6 +67,9 @@ static short drumpractice[60] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
 		0, 0 };
 static short filereturn = 0;
+
+static int curFilePage = 0;
+static int maxPages = 0;
 
 // GUI Stack Functions
 
@@ -130,7 +125,8 @@ static void printtouchposition(int xpos, int ypos) {
 
 static inline short boundarychecker(int inputx, int inputy, int lowlimitx,
 		int highlimitx, int lowlimity, int highlimity) {
-	return (inputx > lowlimitx) && (inputx < highlimitx) && (inputy > lowlimity) && (inputy < highlimity);
+	return (inputx > lowlimitx) && (inputx < highlimitx) && (inputy > lowlimity)
+			&& (inputy < highlimity);
 //	if ((inputx > lowlimitx) && (inputx < highlimitx)) {
 //		if ((inputy > lowlimity) && (inputy < highlimity)) {
 //			//LCD_DrawString(40,20,"BoundaryTrue");
@@ -153,9 +149,8 @@ static void VolumeControlInterface() {
 	// stay the same even after finish function
 	static int CompressedPreValue = -1; // Store the previous value for comparsion
 
-	uint32_t CompressedValue= 0;
-	uint32_t OriginalValue  = 0;
-
+	uint32_t CompressedValue = 0;
+	uint32_t OriginalValue = 0;
 
 //	HAL_ADC_Start(&hadc1);
 //	HAL_ADC_PollForConversion(&hadc1, 1000);
@@ -164,15 +159,13 @@ static void VolumeControlInterface() {
 //	sprintf(xposition, "%04d", HAL_ADC_GetValue(&hadc1));
 //	LCD_DrawString(200, 20, "ADC");
 //	LCD_DrawString(240, 20, xposition);
-	if ((CompressedValue -OriginalValue )> 500)
-	{
-		if (((CompressedValue-CompressedPreValue) > 200 ) ||((CompressedPreValue-CompressedValue) > 200 ))
-		{
-		CompressedPreValue = CompressedValue;
-		volumecurrentstatus = VolumeStatus(OriginalValue, CompressedValue);
+	if ((CompressedValue - OriginalValue) > 500) {
+		if (((CompressedValue - CompressedPreValue) > 200)
+				|| ((CompressedPreValue - CompressedValue) > 200)) {
+			CompressedPreValue = CompressedValue;
+			volumecurrentstatus = VolumeStatus(OriginalValue, CompressedValue);
 		}
 	}
-
 
 //	volumecurrentstatus = VolumeStatus(HAL_ADC_GetValue(&hadc1), 4500);
 //	char yposition[1];
@@ -186,48 +179,53 @@ static void VolumeControlInterface() {
 	}
 }
 
-static void SongSelectionInterface(int page, char filename[][15],
-		int filetype) {
-	//int rows =  1; //numoffiles %3;
+static void SongSelectionInterface(int page, char filename[][15], int filetype) {
 	LCD_Clear(0, 0, 320, 240, WHITE);
 
 	// Print the arrow
+	if (page > 0) {
+		LCD_DrawDownArrow(250, 120, 30, 30, GREEN);
+	} else {
+		LCD_DrawDownArrow(250, 120, 30, 30, GREY);
+	}
 
-//	LCD_DrawLine ( 100, 20, 100, 20, BLUE );
-	// Print File Name
+	if (page < maxPages - 1) {
+		LCD_DrawUpArrow(250, 80, 30, 30, GREEN);
+	} else {
+		LCD_DrawUpArrow(250, 80, 30, 30, GREY);
+	}
 
-	int counter = 0+4*page;
+	int counter = 4 * page;
 	for (int j = 0; j < 2; j++) {
 		for (int i = 0; i < 2; i++) {
-			imagebuilder(20 + 100 * i, 20 + 110 * j, 72, 85, WAV);
-//			char tempbuff[9];
-//			memcpy(tempbuff, filename[counter], 8);
-			LCD_DrawString(25 + 100 * i, 110 + 110 * j,
-					musicFilenames[counter]);
-			counter++;
+			if (counter < musicFileNum) {
+				imagebuilder(20 + 100 * i, 20 + 110 * j, 72, 85, WAV);
+				LCD_DrawString(25 + 100 * i, 110 + 110 * j,
+						musicFilenames[counter]);
+				counter++;
+			}
 		}
 	}
-	LCD_DrawArrow(250,150,30,30,GREEN,10);
 
 }
 
 // Touch screen handler for choosing the file
-static int FileSelector(int XPOS, int YPOS, int page, int numberoffiles) {
+static int FileInterfaceSelector(int XPOS, int YPOS, int page, int numberoffiles) {
 
 	if ((boundarychecker(XPOS, YPOS, 0, 100, 0, 120))
-			&& ((page + 1) <= numberoffiles))
-		return (page + 0);
+			&& ((4 * page + 1) <= numberoffiles))
+		return (4 * page + 0);
 	else if ((boundarychecker(XPOS, YPOS, 100, 150, 0, 120))
-			&& ((page + 2) <= numberoffiles))
-		return (page + 1);
-
-	if ((boundarychecker(XPOS, YPOS, 0, 120, 120, 240))
-			&& ((page + 3) <= numberoffiles))
-		return (page + 2);
+			&& ((4 * page + 2) <= numberoffiles))
+		return (4 * page + 1);
+	else if ((boundarychecker(XPOS, YPOS, 0, 120, 120, 240))
+			&& ((4 * page + 3) <= numberoffiles))
+		return (4 * page + 2);
 	else if ((boundarychecker(XPOS, YPOS, 120, 200, 120, 240))
-			&& ((page + 4) <= numberoffiles))
-		return (page + 3);
-
+			&& ((4 * page + 4) <= numberoffiles))
+		return (4 * page + 3);
+	else
+		return -1;
 }
 
 static void FileFunctionMenu(int index) {
@@ -266,7 +264,9 @@ static void MusicSpectrum(int newpulse) {
 
 #define LCD_DrawRectangle(x, y, w, h, color) \
 	LCD_Clear(x, y, w, h, color);
-uint16_t max(uint16_t a, uint16_t b) {return (a > b) ? a : b;}
+uint16_t max(uint16_t a, uint16_t b) {
+	return (a > b) ? a : b;
+}
 
 static int prev_xpos = 0;
 static void MusicTimeline(float pos, uint8_t drawWhole) {
@@ -282,8 +282,9 @@ static void MusicTimeline(float pos, uint8_t drawWhole) {
 	if (drawWhole) {
 
 		// Draw the playbar
-		LCD_DrawRectangle(30, 200, max((xpos - 30) - 10, 0), 5, (recState == 1) ? RED : BLACK); // BEFORE THE THING
-		LCD_DrawRectangle(xpos + 10, 200, max((300 - xpos) - 10, 0) , 5, 0xF700); // AFTER THE THING
+		LCD_DrawRectangle(30, 200, max((xpos - 30) - 10, 0), 5,
+				(recState == 1) ? RED : BLACK); // BEFORE THE THING
+		LCD_DrawRectangle(xpos + 10, 200, max((300 - xpos) - 10, 0), 5, 0xF700); // AFTER THE THING
 
 		// Draw the bob
 		LCD_DrawCircle(xpos, 200, 10, GREEN);
@@ -292,8 +293,10 @@ static void MusicTimeline(float pos, uint8_t drawWhole) {
 
 		// Draw the playbar
 		if (prev_xpos < xpos) {
-			LCD_DrawRectangle(prev_xpos - 10, 190, (xpos - prev_xpos), 40, WHITE);
-			LCD_DrawRectangle(prev_xpos - 10, 200, (xpos - prev_xpos), 5, (recState == 1) ? RED : BLACK);
+			LCD_DrawRectangle(prev_xpos - 10, 190, (xpos - prev_xpos), 40,
+					WHITE);
+			LCD_DrawRectangle(prev_xpos - 10, 200, (xpos - prev_xpos), 5,
+					(recState == 1) ? RED : BLACK);
 		} else {
 			LCD_DrawRectangle(xpos + 10, 190, (prev_xpos - xpos + 1), 40, WHITE);
 			LCD_DrawRectangle(xpos + 10, 200, (prev_xpos - xpos + 1), 5, 0xF700);
@@ -353,17 +356,16 @@ static void MusicPlayerInterfaceSelector(int xpos, int ypos, short mode) {
 //		else /* recState == RecordingOff */recState = RecordingOn;
 
 		if (recState == RecordingOn) // if recording is on and the stop button is clicked, draw the start button
-		{
+				{
 			endRecording();
 			imagebuilder(140, 80, 56, 57, Recording);
-		}
-		else if (recState == RecordingOff) // if recording is off, draw the ...
-		{
+		} else if (recState == RecordingOff) // if recording is off, draw the ...
+				{
 			startRecording();
 			imagebuilder(140, 80, 57, 57, StopRecording);
 		}
 
-	} else if (boundarychecker(xpos, ypos, 30, 300, 180, 200)) {// Music Drag Timeline
+	} else if (boundarychecker(xpos, ypos, 30, 300, 180, 200)) { // Music Drag Timeline
 		float RelativeMusicPosition = (xpos - 30) / 270.0;
 //		sprintf(buff, "diu %.3f", RelativeMusicPosition);
 //		LCD_DrawString(100, 40, buff);
@@ -397,43 +399,42 @@ static void MainMenuInterface() {
 static void MetronomeInterface(int BPMnum) {
 //	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
-	TIM1->PSC = 72000000/1200 - 1;
+	TIM1->PSC = 72000000 / 1200 - 1;
 	TIM1->CNT = 0;
-	switch(BPMnum)
-	{
+	switch (BPMnum) {
 	case BPM_60:
-		TIM1->ARR = 1200.0/1.0 - 1;
-		LCD_Clear(110,50,210,155,WHITE);
+		TIM1->ARR = 1200.0 / 1.0 - 1;
+		LCD_Clear(110, 50, 210, 155, WHITE);
 		tft_printbigs(110, 50, "60", 6.0);
 		break;
 	case BPM_120:
-		TIM1->ARR = 1200.0/2.0 - 1;
-		LCD_Clear(110,50,210,155,WHITE);
+		TIM1->ARR = 1200.0 / 2.0 - 1;
+		LCD_Clear(110, 50, 210, 155, WHITE);
 		tft_printbigs(110, 50, "120", 6.0);
 		break;
 	case BPM_150:
-		TIM1->ARR = 1200.0/2.5 - 1;
-		LCD_Clear(110,50,210,155,WHITE);
+		TIM1->ARR = 1200.0 / 2.5 - 1;
+		LCD_Clear(110, 50, 210, 155, WHITE);
 		tft_printbigs(110, 50, "150", 6.0);
 		break;
 	case BPM_180:
-		TIM1->ARR = 1200.0/3.0 - 1;
-		LCD_Clear(110,50,210,155,WHITE);
+		TIM1->ARR = 1200.0 / 3.0 - 1;
+		LCD_Clear(110, 50, 210, 155, WHITE);
 		tft_printbigs(110, 50, "180", 6.0);
 		break;
 	case BPM_240:
-		TIM1->ARR = 1200.0/4.0 - 1;
-		LCD_Clear(110,50,210,155,WHITE);
+		TIM1->ARR = 1200.0 / 4.0 - 1;
+		LCD_Clear(110, 50, 210, 155, WHITE);
 		tft_printbigs(110, 50, "240", 6.0);
 		break;
 	case BPM_320:
-		TIM1->ARR = 1200.0/5.3333344 - 1;
-		LCD_Clear(110,50,210,155,WHITE);
+		TIM1->ARR = 1200.0 / 5.3333344 - 1;
+		LCD_Clear(110, 50, 210, 155, WHITE);
 		tft_printbigs(110, 50, "320", 6.0);
 		break;
 	case BPM_1200:
-		TIM1->ARR = 1200/10 - 1;
-		LCD_Clear(110,50,210,155,WHITE);
+		TIM1->ARR = 1200 / 10 - 1;
+		LCD_Clear(110, 50, 210, 155, WHITE);
 		tft_printbigs(110, 50, "1200", 6.0);
 		break;
 	}
@@ -473,14 +474,12 @@ static void DrumPratice() {
  */
 
 //imagebuilder(250, 130, 31, 28, Return);
-
 // Whenever touchscreen is pressed, this function is run
 static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
 	if (boundarychecker(xpos, ypos, 240, 320, 0, 100) // this can be replaced by a physical button
-			&& (!GUIEMPTYSTACK(GUISTACK))&&((currentinterface != GUI_MainMenu))) {
+	&& (!GUIEMPTYSTACK(GUISTACK)) && ((currentinterface != GUI_MainMenu))) {
 		GUIBACKWARD(GUISTACK);
-		if (currentinterface == GUI_SongPlayer)
-		{
+		if (currentinterface == GUI_SongPlayer) {
 			stopMusic();
 			endRecording();
 		}
@@ -497,9 +496,22 @@ static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
 			}
 		} else if (currentinterface == GUI_SongSelection) {
 
-			GUIFORWARD(GUI_SongPlayer, GUISTACK);
-			currentfile = FileSelector(xpos, ypos, 0, musicFileNum);
-			setMusic(musicFilenames[currentfile]);
+			int temp = FileInterfaceSelector(xpos, ypos, 0, musicFileNum);
+			if (0 <= temp && temp < musicFileNum) {
+				currentfile = temp;
+				GUIFORWARD(GUI_SongPlayer, GUISTACK);
+				setMusic(musicFilenames[currentfile]);
+			} else if (boundarychecker(xpos, ypos, 250, 120, 30, 30)) { // down arrow
+				if (curFilePage > 0) {
+					curFilePage--;
+					SongSelectionInterface(curFilePage, musicFilenames, 1);
+				}
+			} else if (boundarychecker(xpos, ypos, 250, 80, 30, 30)) {
+				if (curFilePage < maxPages - 1)  {
+					curFilePage++;
+					SongSelectionInterface(curFilePage, musicFilenames, 1);
+				}
+			}
 
 		} else if (currentinterface == GUI_SongPlayer) {
 			MusicPlayerInterfaceSelector(xpos, ypos, 0);
@@ -532,8 +544,10 @@ static void DisplayInterface(int currentinterface) {
 		MainMenuInterface(); // Draws the main menu
 		break;
 	case GUI_SongSelection: // MusicPlayer
+		curFilePage = 0;
+		maxPages = (musicFileNum + 4 - 1) / 4;
 		LCD_Clear(0, 0, 320, 240, WHITE);
-		SongSelectionInterface(0, musicFilenames, 1); // Draws the files
+		SongSelectionInterface(curFilePage, musicFilenames, 1); // Draws the files
 		imagebuilder(250, 20, 31, 28, Return);
 		break;
 	case GUI_SongPlayer: // MusicPlayer-DrumPlay
@@ -548,7 +562,7 @@ static void DisplayInterface(int currentinterface) {
 	case GUI_Metronome:
 		LCD_Clear(0, 0, 320, 240, WHITE);
 		//imagebuilder(50, 50, 195, 198, MetronomeCircle);
-		imagebuilder(10,50,94,85,BPM);
+		imagebuilder(10, 50, 94, 85, BPM);
 		imagebuilder(250, 20, 31, 28, Return);
 		HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 		MetronomeInterface(BPMCounter);
@@ -625,6 +639,5 @@ static void _touchScreenEvent(ButtonEvent evt) {
 		}
 	}
 }
-
 
 #endif __GUI_H
