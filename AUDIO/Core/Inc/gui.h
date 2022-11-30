@@ -153,7 +153,7 @@ static void VolumeControlInterface() {
 	static int CompressedPreValue = -1; // Store the previous value for comparsion
 
 	uint32_t CompressedValue= HAL_ADC_GetValue(&hadc1);
-	uint32_t OriginalValue  = HAL_ADC_GetValue(&hadc2);
+	uint32_t OriginalValue  = 2500;
 
 
 //	HAL_ADC_Start(&hadc1);
@@ -180,7 +180,7 @@ static void VolumeControlInterface() {
 //	LCD_DrawString(240, 40, yposition);
 
 	if (volumecurrentstatus != volumeprevstatus) {
-		VolumeControl(200, 80, volumecurrentstatus);
+		VolumeControl(220, 120, volumecurrentstatus);
 		volumeprevstatus = volumecurrentstatus;
 	}
 }

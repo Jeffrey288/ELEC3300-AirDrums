@@ -869,6 +869,7 @@ int VolumeStatus(uint32_t input, uint32_t limit) {
 void VolumeControl(int posX, int posY, int percentageindex) {
 
 	LCD_Clear(posX, posY - 60, 120, 80, WHITE);
+	LCD_SetTextColor(GREEN);
 	switch (percentageindex) {
 	case 5:
 		ILI9341_DrawRectangle(posX + 60, posY - 40, 10, 60, 10);

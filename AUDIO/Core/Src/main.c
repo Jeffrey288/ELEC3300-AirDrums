@@ -260,7 +260,8 @@ int main(void)
 	LCD_Clear(0, 0, 320, 240, WHITE);
 	LCD_SetBackColor(WHITE);
 
-//	HAL_ADC_Start(&hadc1);
+	HAL_ADCEx_Calibration_Start(&hadc1);
+	HAL_ADC_Start(&hadc1);
 //	HAL_ADC_PollForConversion(&hadc1, 1000);
 ////	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 	MainMenuInterface();
