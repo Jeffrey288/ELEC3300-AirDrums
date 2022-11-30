@@ -50,6 +50,7 @@ typedef struct {
 
 // some flags for buttons
 	int accelFlag;
+	int DrumFlag;
 	uint32_t hit_tick;
 	imuState state;
 	uint32_t upCount;

@@ -334,18 +334,25 @@ int main(void)
 				initIMUStruct(&imuLeft);
 				//				imu_setActive(&imuLeft);
 				//				MPU9250_Init();
+				//if (imuLeft.DrumFlag == 0)
+				imuLeft.DrumFlag = 1;
 			}
 		} else {
 			PC6 = BTN_UP;
+			imuLeft.DrumFlag = 0;
 		}
 
 		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_7) == GPIO_PIN_SET) {
 			if (PC7 == BTN_UP) {
 				PC7 = BTN_DOWN;
 				initIMUStruct(&imuRight);
+				//if (imuRight.DrumFlag == 0)
+				imuRight.DrumFlag = 1;
+
 			}
 		} else {
 			PC7 = BTN_UP;
+			imuRight.DrumFlag = 0;
 		}
 
 #endif

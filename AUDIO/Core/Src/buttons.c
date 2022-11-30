@@ -24,20 +24,24 @@ void _drumPedalEvent(ButtonEvent evt) { if (evt == BTN_PRESSED) drumPlay(KICK); 
 void _drumIMULeftEvent(ButtonEvent evt) {
 	if (evt == BTN_PRESSED) {
 		hits++;
-		if (imuLeft.yaw < -45) drumPlay(0);
-		else if (imuLeft.yaw < 0) drumPlay(1);
-		else if (imuLeft.yaw < 45) drumPlay(2);
-		else drumPlay(3);
+//		if (imuLeft.yaw < -45) drumPlay(0);
+//		else if (imuLeft.yaw < 0) drumPlay(1);
+//		else if (imuLeft.yaw < 45) drumPlay(2);
+//		else drumPlay(3);
+		if (imuLeft.DrumFlag == 0) drumPlay(2);
+		else drumPlay(1);
 	}
 }
 
 void _drumIMURightEvent(ButtonEvent evt) {
 	if (evt == BTN_PRESSED) {
 		hits++;
-		if (imuRight.yaw < -45) drumPlay(0);
-		else if (imuRight.yaw < 0) drumPlay(1);
-		else if (imuRight.yaw < 45) drumPlay(2);
-		else drumPlay(3);
+//		if (imuRight.yaw < -45) drumPlay(0);
+//		else if (imuRight.yaw < 0) drumPlay(1);
+//		else if (imuRight.yaw < 45) drumPlay(2);
+//		else drumPlay(3);
+		if (imuRight.DrumFlag == 0) drumPlay(3);
+		else drumPlay(0);
 	}
 }
 

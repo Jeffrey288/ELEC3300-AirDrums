@@ -30,7 +30,8 @@ void initIMUStruct(imuStruct *imu) {
 	imu->last_tick = HAL_GetTick();
 	imu->hit_tick = HAL_GetTick();
 	imu->upCount = 0;
-	imu->downCount = 0;
+	imu->downCount = 0;\
+	imu->DrumFlag = 0;
 
 	for (int i = 0; i < 3; i++) {
 //		imu->gyro_filters[i] = kalman(0.06, 0.2);
@@ -186,39 +187,39 @@ void inline updateIMU_T(imuStruct *imu) {
 	if (imu->yaw > 80) imu->yaw = 80;
 	else if (imu->yaw < -80) imu->yaw = -80;
 
-//	switch (imu->state) {
-//	case IMU_IDLE:
-//	case IMU_IDLE_NP:
-//		imu->accelFlag = 0;
-//		if (imu->acc[2] < -22) {
-//				imu->state = IMU_NEG;
-//				imu->hit_tick = HAL_GetTick();
-//		} else if (HAL_GetTick() - imu->hit_tick > 70) { // effectively a cooldown to prevent a hit being detected in the opposite direciton
-//			imu->state = IMU_IDLE;
-//		}
-//		break;
-//
-//	case IMU_NEG:
-//		if (HAL_GetTick() - imu->hit_tick < 150) {
-//			if (imu->acc[2] > 10) {
-//				imu->accelFlag = 1;
-//				imu->state = IMU_HIT_NP;
-//				imu->hit_tick = HAL_GetTick();
-//			}
-//		} else {
-//			imu->state = IMU_IDLE;
-//		}
-//		break;
-//	case IMU_HIT_NP:
-//		if (imu->acc[2] > 10) {
-//			imu->hit_tick = HAL_GetTick();
-//		} else {
-//			if (HAL_GetTick() - imu->hit_tick > 40) {
-//				imu->state = IMU_IDLE_NP;
-//			}
-//		}
-//		break;
-//	}
+	switch (imu->state) {
+	case IMU_IDLE:
+	case IMU_IDLE_NP:
+		imu->accelFlag = 0;
+		if (imu->acc[2] < -22) {
+				imu->state = IMU_NEG;
+				imu->hit_tick = HAL_GetTick();
+		} else if (HAL_GetTick() - imu->hit_tick > 70) { // effectively a cooldown to prevent a hit being detected in the opposite direciton
+			imu->state = IMU_IDLE;
+		}
+		break;
+
+	case IMU_NEG:
+		if (HAL_GetTick() - imu->hit_tick < 150) {
+			if (imu->acc[2] > 10) {
+				imu->accelFlag = 1;
+				imu->state = IMU_HIT_NP;
+				imu->hit_tick = HAL_GetTick();
+			}
+		} else {
+			imu->state = IMU_IDLE;
+		}
+		break;
+	case IMU_HIT_NP:
+		if (imu->acc[2] > 10) {
+			imu->hit_tick = HAL_GetTick();
+		} else {
+			if (HAL_GetTick() - imu->hit_tick > 40) {
+				imu->state = IMU_IDLE_NP;
+			}
+		}
+		break;
+	}
 }
 
 void inline updateIMUs() {
