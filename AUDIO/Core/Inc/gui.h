@@ -189,6 +189,12 @@ static void SongSelectionInterface(int page, char filename[][15],
 		int filetype) {
 	//int rows =  1; //numoffiles %3;
 	LCD_Clear(0, 0, 320, 240, WHITE);
+
+	// Print the arrow
+
+//	LCD_DrawLine ( 100, 20, 100, 20, BLUE );
+	// Print File Name
+
 	int counter = 0+4*page;
 	for (int j = 0; j < 2; j++) {
 		for (int i = 0; i < 2; i++) {
@@ -200,6 +206,8 @@ static void SongSelectionInterface(int page, char filename[][15],
 			counter++;
 		}
 	}
+	ILI9341_DrawCross(50, 50);
+
 }
 
 // Touch screen handler for choosing the file
@@ -255,10 +263,6 @@ static void MusicSpectrum(int newpulse) {
 
 }
 
-#define LCD_DrawCircle(x, y, rad, color) \
-	LCD_SetTextColor(color); \
-	ILI9341_DrawCircle(x, y, rad, 1);
-//	LCD_DrawEllipse((x) - (rad), (y) - (rad), rad, rad, color);
 #define LCD_DrawRectangle(x, y, w, h, color) \
 	LCD_Clear(x, y, w, h, color);
 uint16_t max(uint16_t a, uint16_t b) {return (a > b) ? a : b;}

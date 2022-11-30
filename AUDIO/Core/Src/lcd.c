@@ -514,4 +514,21 @@ void LCD_DrawFormattedString(uint16_t x, uint16_t y, const char* fmt, ...) {
 	va_end(valist);
 }
 
+void LCD_DrawCircle ( uint16_t usX_Center, uint16_t usY_Center, uint16_t usRadius, uint16_t fillColor)
+{
+	uint16_t startx = usX_Center - usRadius;
+	uint16_t starty = usY_Center - usRadius;
+	uint16_t limit = 2 * usRadius + 1;
 
+	LCD_OpenWindow(startx,starty,limit,limit);
+	LCD_Write_Cmd(CMD_SetPixel);
+	for (int i = 0; i<limit;i++) {
+		for (int j = 0; j<limit; j++) {
+			float distance = (startx+i)*(startx+i) + (starty+j)*(starty+j);
+			if (distance < (usRadius*usRadius))
+				LCD_Write_Data(fillColor);
+			else
+				LCD_Write_Data(WHITE);
+		}
+	}
+}
