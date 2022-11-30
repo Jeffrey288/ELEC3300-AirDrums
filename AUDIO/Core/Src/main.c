@@ -286,8 +286,8 @@ int main(void)
 		if (HAL_GetTick() - last_tick > 200) {
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 			last_tick = HAL_GetTick();
-			sprintf(buff, "hit count: %5d %5d", dac1_buff[0], dac1_buff[1]);
-					LCD_DrawString(0, 0, buff);
+//			sprintf(buff, "hit count: %5d %5d", dac1_buff[0], dac1_buff[1]);
+//					LCD_DrawString(0, 0, buff);
 		}
 
 #ifdef USEIMU
@@ -323,9 +323,9 @@ int main(void)
 		}
 
 		if (HAL_GetTick() - gyro_disp_tick > 100) {
-			sprintf(buff, "%4.0f, %4.0f, %4.0f, %4.0f  ", imuLeft.yaw,
+			sprintf(buff, "imu:L(y%4.0f,a%4.0f),R(y%4.0f,a%4.0f)", imuLeft.yaw,
 					imuLeft.acc[2], imuRight.yaw, imuRight.acc[2]);
-			LCD_DrawString(0, 224, buff);
+			LCD_DrawString(0, 0, buff);
 			gyro_disp_tick = HAL_GetTick();
 
 			//			drumPlay(1);
