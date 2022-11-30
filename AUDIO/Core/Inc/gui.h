@@ -64,6 +64,7 @@ static short starttimeline = 0;
 static int MusicSpectrumArray[30] = { 0 };
 static int BPMCounter = 0;
 
+
 static int RGB = 0x0000;
 static short upper = 0x0010;
 static short musicplayeron = 0;
@@ -149,20 +150,34 @@ static void VolumeControlInterface() {
 	static int volumecurrentstatus = -1; // will only init the variable once,
 	static int volumeprevstatus = -1; // but the value of volumeprevstatus will
 	// stay the same even after finish function
+	static int CompressedPreValue = -1; // Store the previous value for comparsion
 
-	HAL_ADC_Start(&hadc1);
-	HAL_ADC_PollForConversion(&hadc1, 1000);
+	uint32_t CompressedValue= HAL_ADC_GetValue(&hadc1);
+	uint32_t OriginalValue  = HAL_ADC_GetValue(&hadc2);
+
+
+//	HAL_ADC_Start(&hadc1);
+//	HAL_ADC_PollForConversion(&hadc1, 1000);
 	//uint32_t abc = HAL_ADC_GetValue(&hadc1);
-	char xposition[4];
-	sprintf(xposition, "%04d", HAL_ADC_GetValue(&hadc1));
-	LCD_DrawString(200, 20, "ADC");
-	LCD_DrawString(240, 20, xposition);
+//	char xposition[4];
+//	sprintf(xposition, "%04d", HAL_ADC_GetValue(&hadc1));
+//	LCD_DrawString(200, 20, "ADC");
+//	LCD_DrawString(240, 20, xposition);
+	if ((CompressedValue -OriginalValue )> 500)
+	{
+		if (((CompressedValue-CompressedPreValue) > 200 ) ||((CompressedPreValue-CompressedValue) > 200 ))
+		{
+		CompressedPreValue = CompressedValue;
+		volumecurrentstatus = VolumeStatus(OriginalValue, CompressedValue);
+		}
+	}
 
-	volumecurrentstatus = VolumeStatus(HAL_ADC_GetValue(&hadc1), 4500);
-	char yposition[1];
-	sprintf(yposition, "%01d", volumecurrentstatus);
-	LCD_DrawString(200, 40, "index");
-	LCD_DrawString(240, 40, yposition);
+
+//	volumecurrentstatus = VolumeStatus(HAL_ADC_GetValue(&hadc1), 4500);
+//	char yposition[1];
+//	sprintf(yposition, "%01d", volumecurrentstatus);
+//	LCD_DrawString(200, 40, "index");
+//	LCD_DrawString(240, 40, yposition);
 
 	if (volumecurrentstatus != volumeprevstatus) {
 		VolumeControl(240, 120, volumecurrentstatus);
@@ -170,11 +185,11 @@ static void VolumeControlInterface() {
 	}
 }
 
-static void SongSelectionInterface(int numoffiles, char filename[][15],
+static void SongSelectionInterface(int page, char filename[][15],
 		int filetype) {
 	//int rows =  1; //numoffiles %3;
 	LCD_Clear(0, 0, 320, 240, WHITE);
-	int counter = 0;
+	int counter = 0+4*page;
 	for (int j = 0; j < 2; j++) {
 		for (int i = 0; i < 2; i++) {
 			imagebuilder(20 + 100 * i, 20 + 110 * j, 72, 85, WAV);
@@ -190,17 +205,17 @@ static void SongSelectionInterface(int numoffiles, char filename[][15],
 // Touch screen handler for choosing the file
 static int FileSelector(int XPOS, int YPOS, int page, int numberoffiles) {
 
-	if ((boundarychecker(XPOS, YPOS, 0, 120, 0, 120))
+	if ((boundarychecker(XPOS, YPOS, 0, 100, 0, 120))
 			&& ((page + 1) <= numberoffiles))
 		return (page + 0);
-	else if ((boundarychecker(XPOS, YPOS, 120, 240, 0, 120))
+	else if ((boundarychecker(XPOS, YPOS, 100, 150, 0, 120))
 			&& ((page + 2) <= numberoffiles))
 		return (page + 1);
 
 	if ((boundarychecker(XPOS, YPOS, 0, 120, 120, 240))
 			&& ((page + 3) <= numberoffiles))
 		return (page + 2);
-	else if ((boundarychecker(XPOS, YPOS, 120, 240, 120, 240))
+	else if ((boundarychecker(XPOS, YPOS, 120, 200, 120, 240))
 			&& ((page + 4) <= numberoffiles))
 		return (page + 3);
 
@@ -354,10 +369,11 @@ static void MusicPlayerInterfaceSelector(int xpos, int ypos, short mode) {
 }
 
 static void MusicPlayerInterface(short mode) { // Draws the interface for the music player
+
 	imagebuilder(20, 80, 57, 57, PlayButton);
 	imagebuilder(80, 80, 57, 56, StopButton);
 	imagebuilder(140, 80, 56, 57, Recording);
-	imagebuilder(250, 130, 31, 28, Return);
+	imagebuilder(250, 20, 31, 28, Return);
 	LCD_DrawString(25, 40, musicFilenames[currentfile]);
 	MusicTimeline(0, 1);
 }
@@ -455,11 +471,14 @@ static void DrumPratice() {
 
 // Whenever touchscreen is pressed, this function is run
 static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
-	if (boundarychecker(xpos, ypos, 240, 320, 120, 200) // this can be replaced by a physical button
+	if (boundarychecker(xpos, ypos, 240, 320, 0, 100) // this can be replaced by a physical button
 			&& (!GUIEMPTYSTACK(GUISTACK))&&((currentinterface != GUI_MainMenu))) {
 		GUIBACKWARD(GUISTACK);
 		if (currentinterface == GUI_SongPlayer)
+		{
+			stopMusic();
 			endRecording();
+		}
 		if (currentinterface == GUI_Metronome)
 			HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
 	} else {
@@ -472,9 +491,11 @@ static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
 				GUIFORWARD(GUI_Metronome, GUISTACK);
 			}
 		} else if (currentinterface == GUI_SongSelection) {
+
 			GUIFORWARD(GUI_SongPlayer, GUISTACK);
-			currentfile = FileSelector(xpos, ypos, 0, musicFileNum);
+			currentfile = FileSelector(xpos, ypos, FilePage, musicFileNum);
 			setMusic(musicFilenames[currentfile]);
+
 		} else if (currentinterface == GUI_SongPlayer) {
 			MusicPlayerInterfaceSelector(xpos, ypos, 0);
 		} else if (currentinterface == GUI_Metronome) {
@@ -508,7 +529,7 @@ static void DisplayInterface(int currentinterface) {
 	case GUI_SongSelection: // MusicPlayer
 		LCD_Clear(0, 0, 320, 240, WHITE);
 		SongSelectionInterface(musicFileNum, musicFilenames, 1); // Draws the files
-		imagebuilder(250, 130, 31, 28, Return);
+		imagebuilder(250, 20, 31, 28, Return);
 		break;
 	case GUI_SongPlayer: // MusicPlayer-DrumPlay
 		LCD_Clear(0, 0, 320, 240, WHITE);
@@ -523,7 +544,7 @@ static void DisplayInterface(int currentinterface) {
 		LCD_Clear(0, 0, 320, 240, WHITE);
 		//imagebuilder(50, 50, 195, 198, MetronomeCircle);
 		imagebuilder(10,50,94,85,BPM);
-		imagebuilder(260, 210, 31, 28, Return);
+		imagebuilder(250, 20, 31, 28, Return);
 		HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 		MetronomeInterface(BPMCounter);
 		BPMCounter = (BPMCounter + 1) % BPM_NUM;
@@ -548,6 +569,8 @@ static void DisplayInterface(int currentinterface) {
 
 // Will always run in the main while loop
 static uint32_t gui_last_tick = 0;
+static uint32_t vol_last_tick = 0;
+
 static void InterfaceHandler() {
 	switch (currentinterface) {
 
@@ -557,6 +580,10 @@ static void InterfaceHandler() {
 			gui_last_tick = HAL_GetTick();
 			// update the timeline every second
 			MusicTimeline(getMusicProgress(), 0);
+		}
+		if (HAL_GetTick() - vol_last_tick > 200) {
+			vol_last_tick = HAL_GetTick();
+			VolumeControlInterface();
 		}
 
 		// note: no need to call musicUpdate or drumUpdate here

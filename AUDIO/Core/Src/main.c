@@ -152,10 +152,12 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
 #ifdef IVANCODE
+
 	ILI9341_Init();
 	ILI9341_GramScan(3);
 	LCD_SetBackColor(WHITE);
 	ILI9341_Clear(0, 0, 320, 240);
+
 #else
 	LCD_INIT();
 #endif
@@ -253,10 +255,9 @@ int main(void)
 	LCD_Clear(0, 0, 320, 240, WHITE);
 	LCD_SetBackColor(WHITE);
 
-	HAL_ADC_Start(&hadc1);
-	HAL_ADC_PollForConversion(&hadc1, 1000);
-//	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-
+//	HAL_ADC_Start(&hadc1);
+//	HAL_ADC_PollForConversion(&hadc1, 1000);
+////	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 	MainMenuInterface();
 #endif
 
@@ -266,6 +267,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	int last_tick = HAL_GetTick();
 	int gyro_disp_tick = HAL_GetTick();
+
 
 	ButtonState PA0 = BTN_UP;
 	ButtonState PC13 = BTN_UP;

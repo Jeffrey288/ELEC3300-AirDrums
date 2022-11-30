@@ -386,6 +386,7 @@ void LCD_DrawChar ( uint16_t usC, uint16_t usP, const char cChar )
 		
 		for ( ucColumn = 0; ucColumn < WIDTH_EN_CHAR; ucColumn ++ )
 		{
+
 			if ( ucTemp & 0x01 )
 				LCD_Write_Data ( 0x001F );
 			
