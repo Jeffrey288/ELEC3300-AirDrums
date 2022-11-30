@@ -153,6 +153,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
 #ifdef IVANCODE
+  HAL_ADC_Start_DMA(&hadc1, dac1_buff, 2);
 //  	HAL_ADCEx_Calibration_Start(&hadc1);
 //  	HAL_ADCEx_Calibration_Start(&hadc2);
 //  	HAL_ADC_Start(&hadc1);
@@ -285,6 +286,8 @@ int main(void)
 		if (HAL_GetTick() - last_tick > 200) {
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 			last_tick = HAL_GetTick();
+			sprintf(buff, "hit count: %5d %5d", dac1_buff[0], dac1_buff[1]);
+					LCD_DrawString(0, 0, buff);
 		}
 
 #ifdef USEIMU

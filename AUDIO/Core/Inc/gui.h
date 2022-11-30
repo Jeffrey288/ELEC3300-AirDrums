@@ -146,6 +146,7 @@ static inline short boundarychecker(int inputx, int inputy, int lowlimitx,
  * Specific GUI Functions
  */
 
+static uint32_t dac1_buff[2];
 static void VolumeControlInterface() {
 	static int volumecurrentstatus = -1; // will only init the variable once,
 	static int volumeprevstatus = -1; // but the value of volumeprevstatus will
