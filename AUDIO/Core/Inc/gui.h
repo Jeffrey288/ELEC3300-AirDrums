@@ -152,8 +152,8 @@ static void VolumeControlInterface() {
 	// stay the same even after finish function
 	static int CompressedPreValue = -1; // Store the previous value for comparsion
 
-	uint32_t CompressedValue= HAL_ADC_GetValue(&hadc1);
-	uint32_t OriginalValue  = HAL_ADC_GetValue(&hadc2);
+	uint32_t CompressedValue= 0;
+	uint32_t OriginalValue  = 0;
 
 
 //	HAL_ADC_Start(&hadc1);
