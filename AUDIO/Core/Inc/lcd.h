@@ -71,5 +71,6 @@ void tft_printbigs(short x, short y, const char *str, float scale);
 //void LCD_WriteName(uint16_t usC, uint16_t usP);
 //void LCD_PrintImage();
 void LCD_DrawFormattedString(uint16_t x, uint16_t y, const char* fmt, ...);
+void LCD_DrawCircle(uint16_t usX_Center, uint16_t usY_Center, uint16_t usRadius, uint16_t fillColor);
 #endif 
 
