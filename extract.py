@@ -1,9 +1,22 @@
+# Script for extracting raw audio data
+# steps:
+# 1. put your drum sounds (.wav file) in a folder
+# make sure the .wav files are MONO CHANNEL
+# 2. then, replace path with the path of your folder
+# 3. run this script
+# requirements: install scipy
+
+path = r"c:\Users\pinkp\Desktop\mod\mod2"
+
+
+# ------ DO NOT MODIFY BELOW ------- #
+
 from os import listdir, getcwd, chdir
 from os.path import isfile, join
 # import librosa
 from scipy.signal import resample
 curpath = getcwd()
-curpath = r"c:\Users\pinkp\Desktop\mod\mod2" # replace this with the path of the folder
+curpath = path  # replace this with the path of the folder
 # the folder should contain .wav sounds, MONOTONIC
 chdir(curpath)
 print(curpath)
