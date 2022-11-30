@@ -478,7 +478,7 @@ static void DrumPratice() {
 //imagebuilder(250, 130, 31, 28, Return);
 // Whenever touchscreen is pressed, this function is run
 static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
-	if (boundarychecker(xpos, ypos, 240, 320, 0, 100) // this can be replaced by a physical button
+	if (boundarychecker(xpos, ypos, 250, 281, 20, 48) // this can be replaced by a physical button
 	&& (!GUIEMPTYSTACK(GUISTACK)) && ((currentinterface != GUI_MainMenu))) {
 		GUIBACKWARD(GUISTACK);
 		if (currentinterface == GUI_SongPlayer) {
@@ -503,12 +503,12 @@ static void InterfaceSelector(int xpos, int ypos, int currentinterface) {
 				currentfile = temp;
 				GUIFORWARD(GUI_SongPlayer, GUISTACK);
 				setMusic(musicFilenames[currentfile]);
-			} else if (boundarychecker(xpos, ypos, 250, 120, 30, 30)) { // down arrow
+			} else if (boundarychecker(xpos, ypos, 250, 280, 120, 150)) { // down arrow
 				if (curFilePage > 0) {
 					curFilePage--;
 					SongSelectionInterface(curFilePage, musicFilenames, 1);
 				}
-			} else if (boundarychecker(xpos, ypos, 250, 80, 30, 30)) {
+			} else if (boundarychecker(xpos, ypos, 250, 280, 80, 110)) {
 				if (curFilePage < maxPages - 1)  {
 					curFilePage++;
 					SongSelectionInterface(curFilePage, musicFilenames, 1);
