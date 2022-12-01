@@ -1,6 +1,7 @@
 #include "imu.h"
 #include "stm32f1xx_hal.h"
 
+uint8_t backupState = 0;
 
 imuState states[6] = { 0 };
 extern int hits;
@@ -31,6 +32,7 @@ void initIMUStruct(imuStruct *imu) {
 	imu->hit_tick = HAL_GetTick();
 	imu->upCount = 0;
 	imu->downCount = 0;
+	imu->btnPressed = 0;
 
 	for (int i = 0; i < 3; i++) {
 //		imu->gyro_filters[i] = kalman(0.06, 0.2);

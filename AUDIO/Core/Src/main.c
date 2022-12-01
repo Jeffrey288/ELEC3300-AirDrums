@@ -334,21 +334,31 @@ int main(void)
 		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_6) == GPIO_PIN_SET) {
 			if (PC6 == BTN_UP) {
 				PC6 = BTN_DOWN;
-				initIMUStruct(&imuLeft);
+				if (backupState) {
+					imuLeft.btnPressed = 1;
+				} else {
+					initIMUStruct(&imuLeft);
+				}
 				//				imu_setActive(&imuLeft);
 				//				MPU9250_Init();
 			}
 		} else {
 			PC6 = BTN_UP;
+			imuLeft.btnPressed = 0;
 		}
 
 		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_7) == GPIO_PIN_SET) {
 			if (PC7 == BTN_UP) {
 				PC7 = BTN_DOWN;
-				initIMUStruct(&imuRight);
+				if (backupState) {
+					imuRight.btnPressed = 1;
+				} else {
+					initIMUStruct(&imuRight);
+				}
 			}
 		} else {
 			PC7 = BTN_UP;
+			imuRight.btnPressed = 0;
 		}
 
 #endif
@@ -420,11 +430,13 @@ int main(void)
 			if (PC13 == BTN_UP) {
 				PC13 = BTN_DOWN;
 				// run command
-				if (musicState == MUSIC_PLAYING) {
-					pauseMusic();
-				} else {
-					playMusic();
-				}
+//				if (musicState == MUSIC_PLAYING) {
+//					pauseMusic();
+//				} else {
+//					playMusic();
+//				}
+				backupState = 1;
+				LCD_DrawString(0, 214, "Backup Mode Activated!");
 				//				stopMusic();
 				//				seekMusic(0.5);
 				//				sprintf(buff, "prog: %.2f", getMusicProgress());

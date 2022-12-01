@@ -24,20 +24,36 @@ void _drumPedalEvent(ButtonEvent evt) { if (evt == BTN_PRESSED) drumPlay(KICK); 
 void _drumIMULeftEvent(ButtonEvent evt) {
 	if (evt == BTN_PRESSED) {
 		hits++;
-		if (imuLeft.yaw < -45) drumPlay(0);
-		else if (imuLeft.yaw < 0) drumPlay(1);
-		else if (imuLeft.yaw < 45) drumPlay(2);
-		else drumPlay(3);
+		if (backupState) {
+			if (!imuLeft.btnPressed) {
+				drumPlay(HIGH_TOM);
+			} else {
+				drumPlay(SNARE);
+			}
+		} else {
+			if (imuLeft.yaw < -45) drumPlay(0);
+			else if (imuLeft.yaw < 0) drumPlay(1);
+			else if (imuLeft.yaw < 45) drumPlay(2);
+			else drumPlay(3);
+		}
 	}
 }
 
 void _drumIMURightEvent(ButtonEvent evt) {
 	if (evt == BTN_PRESSED) {
 		hits++;
-		if (imuRight.yaw < -45) drumPlay(0);
-		else if (imuRight.yaw < 0) drumPlay(1);
-		else if (imuRight.yaw < 45) drumPlay(2);
-		else drumPlay(3);
+		if (backupState) {
+			if (!imuRight.btnPressed) {
+				drumPlay(TOM3);
+			} else {
+				drumPlay(CRASH);
+			}
+		} else {
+			if (imuRight.yaw < -45) drumPlay(0);
+			else if (imuRight.yaw < 0) drumPlay(1);
+			else if (imuRight.yaw < 45) drumPlay(2);
+			else drumPlay(3);
+		}
 	}
 }
 

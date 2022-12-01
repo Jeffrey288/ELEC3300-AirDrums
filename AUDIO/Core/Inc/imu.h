@@ -3,6 +3,8 @@
 #include "madgwickFilter.h"
 #include "kalman.h"
 
+extern uint8_t backupState; // for demo purposes
+
 #define IMU_REFRESH_RATE 2000
 
 typedef enum {
@@ -54,6 +56,7 @@ typedef struct {
 	imuState state;
 	uint32_t upCount;
 	uint32_t downCount;
+	int btnPressed;
 
 	Kalman gyro_filters[3];
 	Kalman acc_filters[3];

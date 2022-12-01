@@ -14,8 +14,10 @@
 #define DRUM_MACRO(X) \
 	X(KICK, kick) \
 	X(CRASH, crash) \
+	X(SNARE, snare) \
 	X(LOW_TOM, tom1) \
-	X(HIGH_TOM, tom2)
+	X(HIGH_TOM, tom2) \
+	X(TOM3, tom3)
 
 #define DRUM_ENUMS_DEF(a, ...) a,
 //#define DRUM_FILENAME_DEF(a, b, ...) b,
