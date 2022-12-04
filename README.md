@@ -1,7 +1,7 @@
 # ELEC3300-AirDrums
 
-
-
+## Project Summary
+![ProjectSummary_Group44_v5](https://user-images.githubusercontent.com/90342420/205483997-fbf42bf1-da19-4e9c-998b-b0f36d36b89f.svg)
 
 ## Peer Discussion Worksheet
 
