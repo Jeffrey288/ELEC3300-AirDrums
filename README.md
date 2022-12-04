@@ -1,21 +1,8 @@
-# ELEC3300-Project
+# ELEC3300-AirDrums
 
-## to do list for imu
-- roll SHOULD NOT depend on pitch
-- pitch should not depend on yaw
-- find some way to use mahony
-- use roll data to determine rod orientation and hence determine vertial-component acceleration
-- add calibration sequence
 
-## To-do list
-- (Ivan) board drawing
-- music playing and mixing (headphone jack)
-- analog pedal (tof + uart)
-- imu data processing (digital)
-- sd card storage (sd card reader)
-- some buttons (init, start recording, stop recording)
 
-# ELEC 3300 – Introduction to Embedded Systems
+
 ## Peer Discussion Worksheet
 
 Project Group Number: **44**
