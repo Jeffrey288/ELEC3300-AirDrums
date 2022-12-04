@@ -1,7 +1,13 @@
 # ELEC3300-AirDrums
 
+> **_AUDIO_**: Air Drum project code
+> **_wav extraction script_**: Script for extracting and resampling raw data from .wav files
+> **_..separate work.._**: Unmerged code for GUI and IMU that Ivan and Terence were working on
+> **_Project Report_**: Contains powerpoint, demo videos and pictures of our product
+
 ## Project Summary
 ![ProjectSummary_Group44_v5](https://user-images.githubusercontent.com/90342420/205483997-fbf42bf1-da19-4e9c-998b-b0f36d36b89f.svg)
+Please note that our music player only supports playing music at 22050Hz.
 
 ## Peer Discussion Worksheet
 
