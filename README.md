@@ -6,7 +6,11 @@
 > **_Project Report_**: Contains powerpoint, demo videos and pictures of our product
 
 ## Project Summary
-![ProjectSummary_Group44_v5](https://user-images.githubusercontent.com/90342420/205483997-fbf42bf1-da19-4e9c-998b-b0f36d36b89f.svg)
+<!-- ![ProjectSummary_Group44_v5](https://user-images.githubusercontent.com/90342420/205483997-fbf42bf1-da19-4e9c-998b-b0f36d36b89f.svg) -->
+<!-- ![image](https://user-images.githubusercontent.com/90342420/228476126-04faaeb8-54e4-495c-9526-38fb821523dc.png) -->
+
+![205483997-fbf42bf1-da19-4e9c-998b-b0f36d36b89f](https://user-images.githubusercontent.com/90342420/228476762-aa77ab16-d9b9-4f86-a18a-542bb1d98945.jpg)
+
 
 Please note that our music player only supports playing music at 22050Hz.
 
